@@ -9,6 +9,11 @@ use App\Models\Widget;
 use App\Models\Media;
 use App\Models\WidgetAction;
 use App\Models\WidgetStyle;
+use App\Models\Chat;
+use App\Models\ChatMessage;
+use App\Models\Contact;
+use Illuminate\Support\Facades\Validator;
+
 class ChatController extends Controller
 {
     public $isWidgetVisible = false;
@@ -32,7 +37,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'Domain not found' . ' ' . parse_url($this->domain, PHP_URL_HOST)], 404);
         }
 
-        $widgetUrl = WidgetUrl::where('url', $this->path)
+        $widgetUrl = WidgetUrl::where('url', $this->domain)
             ->first();
 
         if (!$widgetUrl) {
@@ -79,7 +84,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'Domain not found' . ' ' . parse_url($this->domain, PHP_URL_HOST)], 404);
         }
 
-        $widgetUrl = WidgetUrl::where('url', $this->path)
+        $widgetUrl = WidgetUrl::where('url', $this->domain)
             ->first();
 
         if ($widgetUrl) {
@@ -125,5 +130,150 @@ class ChatController extends Controller
     public function widgetVisible($referer)
     {
         return $this->isWidgetVisible;
+    }
+
+    // API Methods for Chat Widget
+    public function startChat(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:2',
+            'email' => 'required|email',
+            'message' => 'required|string|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            // Create contact
+            $contact = Contact::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone ?? null,
+            ]);
+
+            // Create new chat
+            $chat = Chat::create([
+                'contact_id' => $contact->id,
+                'status' => 'active',
+                'last_message_at' => now(),
+                'title' => 'Chat with ' . $request->name,
+            ]);
+
+            // Create first message
+            $message = ChatMessage::create([
+                'chat_id' => $chat->id,
+                'message' => $request->message,
+                'type' => 'user',
+                'is_read' => false,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'chat_id' => $chat->id,
+                'message' => $message,
+                'contact' => $contact,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to start chat',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendMessage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'chat_id' => 'required|exists:chats,id',
+            'message' => 'required|string|min:1',
+            'type' => 'in:user,agent',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $message = ChatMessage::create([
+                'chat_id' => $request->chat_id,
+                'message' => $request->message,
+                'type' => $request->type ?? 'user',
+                'is_read' => false,
+            ]);
+
+            // Update chat last message time
+            Chat::where('id', $request->chat_id)->update([
+                'last_message_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send message',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getMessages($chatId)
+    {
+        try {
+            $messages = ChatMessage::where('chat_id', $chatId)
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'messages' => $messages,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve messages',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getChatStatus($chatId)
+    {
+        try {
+            $chat = Chat::with('contact')->find($chatId);
+            
+            if (!$chat) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Chat not found'
+                ], 404);
+            }
+
+            $unreadCount = ChatMessage::where('chat_id', $chatId)
+                ->where('type', 'agent')
+                ->where('is_read', false)
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'chat' => $chat,
+                'unread_count' => $unreadCount,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get chat status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
