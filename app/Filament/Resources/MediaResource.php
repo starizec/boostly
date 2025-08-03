@@ -32,7 +32,7 @@ class MediaResource extends Resource
                 Forms\Components\FileUpload::make('url')
                     ->required()
                     ->acceptedFileTypes(['video/mp4'])
-                    ->maxSize(50 * 1024) // 50MB
+                    ->maxSize(100 * 1024) // 100MB
                     ->directory('videos')
                     ->preserveFilenames()
                     ->downloadable()

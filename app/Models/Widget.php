@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Widget extends Model
@@ -31,7 +32,6 @@ class Widget extends Model
         'action_id',
         'media_id',
         'user_id',
-        'media_id',
         'button_text',
         'start_button_text',
         'style_id'
@@ -74,5 +74,10 @@ class Widget extends Model
     public function style(): BelongsTo
     {
         return $this->belongsTo(WidgetStyle::class);
+    }
+
+    public function widgetUrls(): HasMany
+    {
+        return $this->hasMany(WidgetUrl::class);
     }
 } 
