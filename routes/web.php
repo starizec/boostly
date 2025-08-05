@@ -16,6 +16,40 @@ Route::get('/test-widget', function () {
     return view('test-widget');
 });
 
+Route::get('/chatnew', function () {
+    // For testing purposes, create or get a sample user and contact
+    $user = \App\Models\User::first();
+    $contact = \App\Models\Contact::first();
+    
+    // If no user exists, create a sample one
+    if (!$user) {
+        $user = \App\Models\User::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'user'
+        ]);
+    }
+    
+    // If no contact exists, create a sample one
+    if (!$contact) {
+        $contact = \App\Models\Contact::create([
+            'name' => 'Support Agent',
+            'email' => 'support@example.com',
+            'phone' => '+1234567890'
+        ]);
+    }
+    
+    // Debug output
+    \Log::info('User data:', $user->toArray());
+    \Log::info('Contact data:', $contact->toArray());
+    
+    return view('chatnew', [
+        'friend' => $contact,
+        'currentUser' => $user
+    ]);
+});
+
 // Chat Widget API Routes
 Route::prefix('api/chat')->group(function () {
     Route::post('/start', [ChatController::class, 'startChat'])->name('chat.start');
