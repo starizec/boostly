@@ -12,10 +12,19 @@
             this.isExpanded = false; // Track expansion state
             this.isMuted = true; // Track mute state
             this.isChatFormVisible = false; // Track chat form visibility
+            this.chatExist = false; // Track if chat exists in localStorage
         }
 
         async init() {
             try {
+                // Check if chat exists in localStorage
+                const bcId = localStorage.getItem('bc_id');
+                this.chatExist = bcId !== null;
+                
+                if (this.chatExist) {
+                    console.log('Existing chat found with ID:', bcId);
+                }
+
                 // Call to verify endpoint
                 const response = await fetch(`${this.host}/verify`, {
                     method: 'POST',
@@ -643,14 +652,55 @@
                 return;
             }
 
-            // Here you would typically send the data to your backend
-            console.log('Chat form submitted:', { name, email, message });
-            
-            // For now, just show a success message
-            alert('Thank you for your message! We\'ll get back to you soon.');
-            
-            // Hide the form and return to video
-            this.hideChatForm();
+            // Show loading state
+            const submitButton = document.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = 'Sending...';
+            submitButton.disabled = true;
+
+            // Make API call to Laravel backend
+            fetch(`${this.host}/api/chat/start`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    message: message,
+                    client_domain: this.clientDomain
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('data', data);
+                    // Store chat_id to localStorage
+                    localStorage.setItem('bc_id', data.chat_id);
+                    // Success - show success message
+                    alert('Thank you for your message! We\'ll get back to you soon.');
+                    
+                    // Store chat data for future use
+                    this.currentChatId = data.chat_id;
+                    this.currentContact = data.contact;
+                    
+                    // Hide the form and return to video
+                    this.hideChatForm();
+                } else {
+                    // Error from server
+                    alert('Error: ' + (data.message || 'Failed to send message. Please try again.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting chat form:', error);
+                alert('Network error. Please check your connection and try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            });
         }
 
         // Method to expand widget (can be called later when needed)
