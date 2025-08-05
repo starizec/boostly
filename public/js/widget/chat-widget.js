@@ -678,15 +678,13 @@
                     console.log('data', data);
                     // Store chat_id to localStorage
                     localStorage.setItem('bc_id', data.chat_id);
-                    // Success - show success message
-                    alert('Thank you for your message! We\'ll get back to you soon.');
                     
                     // Store chat data for future use
                     this.currentChatId = data.chat_id;
                     this.currentContact = data.contact;
                     
-                    // Hide the form and return to video
-                    this.hideChatForm();
+                    // Show chat interface instead of hiding form
+                    this.showChatInterface();
                 } else {
                     // Error from server
                     alert('Error: ' + (data.message || 'Failed to send message. Please try again.'));
@@ -701,6 +699,298 @@
                 submitButton.innerHTML = originalText;
                 submitButton.disabled = false;
             });
+        }
+
+        showChatInterface() {
+            // Hide form and show chat interface
+            this.chatFormContainer.style.display = 'none';
+            
+            // Create chat interface
+            this.createChatInterface();
+            
+            // Load messages
+            this.loadMessages();
+        }
+
+        createChatInterface() {
+            // Create chat interface container
+            this.chatInterfaceContainer = document.createElement('div');
+            this.chatInterfaceContainer.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+                z-index: 15;
+            `;
+
+            // Create chat header
+            const chatHeader = document.createElement('div');
+            chatHeader.style.cssText = `
+                padding: 15px 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+            chatHeader.innerHTML = `
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">Chat Support</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">We're here to help!</p>
+                </div>
+                <button id="back-to-video-btn" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                ">← Back</button>
+            `;
+
+            // Create messages container
+            this.messagesContainer = document.createElement('div');
+            this.messagesContainer.style.cssText = `
+                flex: 1;
+                padding: 15px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            `;
+
+            // Create input container
+            const inputContainer = document.createElement('div');
+            inputContainer.style.cssText = `
+                padding: 15px 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                display: flex;
+                gap: 10px;
+                align-items: flex-end;
+            `;
+
+            // Create message input
+            this.messageInput = document.createElement('textarea');
+            this.messageInput.style.cssText = `
+                flex: 1;
+                padding: 10px;
+                border: none;
+                border-radius: 6px;
+                font-size: 14px;
+                background: rgba(255, 255, 255, 0.9);
+                backdrop-filter: blur(10px);
+                color: #333;
+                resize: none;
+                font-family: inherit;
+                min-height: 40px;
+                max-height: 100px;
+            `;
+            this.messageInput.placeholder = 'Type your message...';
+            this.messageInput.rows = 1;
+
+            // Auto-resize textarea
+            this.messageInput.addEventListener('input', () => {
+                this.messageInput.style.height = 'auto';
+                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 100) + 'px';
+            });
+
+            // Create send button
+            const sendButton = document.createElement('button');
+            sendButton.style.cssText = `
+                background: rgba(255, 255, 255, 0.95);
+                color: #333;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            `;
+            sendButton.innerHTML = 'Send';
+
+            // Add hover effect to send button
+            sendButton.addEventListener('mouseenter', () => {
+                sendButton.style.background = 'rgba(255, 255, 255, 1)';
+                sendButton.style.transform = 'translateY(-1px)';
+            });
+
+            sendButton.addEventListener('mouseleave', () => {
+                sendButton.style.background = 'rgba(255, 255, 255, 0.95)';
+                sendButton.style.transform = 'translateY(0)';
+            });
+
+            // Send message on button click
+            sendButton.addEventListener('click', () => {
+                this.sendMessage();
+            });
+
+            // Send message on Enter key (but allow Shift+Enter for new line)
+            this.messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+
+            // Assemble input container
+            inputContainer.appendChild(this.messageInput);
+            inputContainer.appendChild(sendButton);
+
+            // Assemble chat interface
+            this.chatInterfaceContainer.appendChild(chatHeader);
+            this.chatInterfaceContainer.appendChild(this.messagesContainer);
+            this.chatInterfaceContainer.appendChild(inputContainer);
+
+            // Add back button functionality
+            const backButton = chatHeader.querySelector('#back-to-video-btn');
+            if (backButton) {
+                backButton.addEventListener('click', () => {
+                    this.hideChatInterface();
+                });
+            }
+
+            this.widgetContainer.appendChild(this.chatInterfaceContainer);
+        }
+
+        loadMessages() {
+            if (!this.currentChatId) {
+                console.error('No chat ID available');
+                return;
+            }
+
+            console.log('this.currentChatId', this.currentChatId);
+
+            fetch(`${this.host}/api/chat/messages/${this.currentChatId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('data', data);
+                        this.displayMessages(data.messages);
+                    } else {
+                        console.error('Failed to load messages:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading messages:', error);
+                });
+        }
+
+        displayMessages(messages) {
+            this.messagesContainer.innerHTML = '';
+            
+            messages.forEach(message => {
+                const messageElement = this.createMessageElement(message);
+                this.messagesContainer.appendChild(messageElement);
+            });
+            
+            // Scroll to bottom
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        }
+
+        createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            const isUser = message.type === 'user';
+            
+            messageDiv.style.cssText = `
+                display: flex;
+                justify-content: ${isUser ? 'flex-end' : 'flex-start'};
+                margin-bottom: 8px;
+            `;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.style.cssText = `
+                max-width: 80%;
+                padding: 10px 12px;
+                border-radius: 12px;
+                font-size: 14px;
+                line-height: 1.4;
+                word-wrap: break-word;
+                background: ${isUser ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.2)'};
+                color: ${isUser ? '#333' : 'white'};
+                backdrop-filter: blur(10px);
+            `;
+            
+            messageBubble.textContent = message.message;
+            messageDiv.appendChild(messageBubble);
+            
+            return messageDiv;
+        }
+
+        sendMessage() {
+            const message = this.messageInput.value.trim();
+            
+            if (!message) {
+                return;
+            }
+
+            // Clear input
+            this.messageInput.value = '';
+            this.messageInput.style.height = 'auto';
+
+            // Add message to UI immediately (optimistic update)
+            const tempMessage = {
+                id: Date.now(),
+                message: message,
+                type: 'user',
+                created_at: new Date().toISOString()
+            };
+            
+            const messageElement = this.createMessageElement(tempMessage);
+            this.messagesContainer.appendChild(messageElement);
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+
+            // Send to backend
+            fetch(`${this.host}/api/chat/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: this.currentChatId,
+                    message: message,
+                    type: 'user'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Failed to send message:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
+        }
+
+        hideChatInterface() {
+            // Remove chat interface
+            if (this.chatInterfaceContainer) {
+                this.chatInterfaceContainer.remove();
+                this.chatInterfaceContainer = null;
+            }
+            
+            // Show video and buttons
+            this.videoContainer.style.display = 'block';
+            this.expandedButtonsContainer.style.display = 'flex';
+            this.muteButton.style.display = 'flex';
+            
+            // Remove chat form if it exists
+            if (this.chatFormContainer) {
+                this.chatFormContainer.remove();
+                this.chatFormContainer = null;
+            }
+            
+            this.isChatFormVisible = false;
         }
 
         // Method to expand widget (can be called later when needed)
