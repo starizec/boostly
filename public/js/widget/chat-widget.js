@@ -250,8 +250,16 @@
                 this.hoverButton.style.transform = 'scale(1)';
             });
 
-            // Click event to expand/collapse video
+            // Click event to expand video (only when collapsed)
             this.widgetContainer.addEventListener('click', () => {
+                if (!this.isExpanded) {
+                    this.expandVideo();
+                }
+            });
+
+            // Add click handler for expand/collapse button
+            this.hoverButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent widget click event
                 if (this.isExpanded) {
                     this.collapseVideo();
                 } else {
@@ -268,8 +276,8 @@
             this.widgetContainer.style.height = `${expandedHeight}px`;
             
             // Change expand button to collapse button
-            this.hoverButton.innerHTML = '⤢';
-            this.hoverButton.style.transform = 'rotate(180deg)';
+            this.hoverButton.innerHTML = '⤵';
+            this.hoverButton.style.transform = 'rotate(0deg)';
             
             // Show mute button and unmute video when expanded
             this.showMuteButton();
