@@ -949,7 +949,7 @@
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
             // Send to backend
-            fetch(`${this.host}/api/chat/send`, {
+            fetch(`${this.host}/api/chat/message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
