@@ -9,6 +9,7 @@
             this.widget = null;
             this.videoAspectRatio = 16/9; // Default aspect ratio
             this.initialWidth = 150; // Initial width in pixels
+            this.isExpanded = false; // Track expansion state
         }
 
         async init() {
@@ -183,9 +184,13 @@
                 this.hoverButton.style.transform = 'scale(1)';
             });
 
-            // Click event to expand video
+            // Click event to expand/collapse video
             this.widgetContainer.addEventListener('click', () => {
-                this.expandVideo();
+                if (this.isExpanded) {
+                    this.collapseVideo();
+                } else {
+                    this.expandVideo();
+                }
             });
         }
 
@@ -196,9 +201,9 @@
             this.widgetContainer.style.width = `${expandedWidth}px`;
             this.widgetContainer.style.height = `${expandedHeight}px`;
             
-            // Hide the hover button after expansion
-            this.hoverButton.style.opacity = '0';
-            this.hoverButton.style.pointerEvents = 'none';
+            // Change expand button to collapse button
+            this.hoverButton.innerHTML = '⤢';
+            this.hoverButton.style.transform = 'rotate(180deg)';
             
             // Play sound if available
             this.playExpansionSound();
@@ -206,7 +211,31 @@
             // Show action and chat buttons
             this.createExpandedButtons();
             
+            this.isExpanded = true;
+            
             console.log('Video expanded to:', expandedWidth, 'x', expandedHeight);
+        }
+
+        collapseVideo() {
+            const collapsedWidth = this.initialWidth;
+            const collapsedHeight = collapsedWidth / this.videoAspectRatio;
+            
+            this.widgetContainer.style.width = `${collapsedWidth}px`;
+            this.widgetContainer.style.height = `${collapsedHeight}px`;
+            
+            // Change collapse button back to expand button
+            this.hoverButton.innerHTML = '⤢';
+            this.hoverButton.style.transform = 'rotate(0deg)';
+            
+            // Remove expanded buttons if they exist
+            if (this.expandedButtonsContainer) {
+                this.expandedButtonsContainer.remove();
+                this.expandedButtonsContainer = null;
+            }
+            
+            this.isExpanded = false;
+            
+            console.log('Video collapsed to:', collapsedWidth, 'x', collapsedHeight);
         }
 
         playExpansionSound() {
