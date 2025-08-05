@@ -10,6 +10,7 @@
             this.videoAspectRatio = 16/9; // Default aspect ratio
             this.initialWidth = 150; // Initial width in pixels
             this.isExpanded = false; // Track expansion state
+            this.isMuted = true; // Track mute state
         }
 
         async init() {
@@ -73,6 +74,9 @@
             // Create video background div
             this.createVideoBackground();
             
+            // Create mute button (initially hidden)
+            this.createMuteButton();
+            
             // Create hover button (initially hidden)
             this.createHoverButton();
             
@@ -134,6 +138,67 @@
             // Add video to container
             this.videoContainer.appendChild(this.videoElement);
             this.widgetContainer.appendChild(this.videoContainer);
+        }
+
+        createMuteButton() {
+            // Create mute button
+            this.muteButton = document.createElement('div');
+            this.muteButton.style.cssText = `
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(10px);
+                padding: 8px;
+                border-radius: 50%;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #fff;
+                font-size: 16px;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+                opacity: 0;
+                pointer-events: none;
+            `;
+
+            this.muteButton.innerHTML = '🔇'; // Muted icon
+            this.isMuted = true;
+
+            // Add click handler for mute/unmute
+            this.muteButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent widget click event
+                this.toggleMute();
+            });
+
+            this.widgetContainer.appendChild(this.muteButton);
+        }
+
+        toggleMute() {
+            if (this.isMuted) {
+                this.videoElement.muted = false;
+                this.muteButton.innerHTML = '🔊'; // Unmuted icon
+                this.isMuted = false;
+            } else {
+                this.videoElement.muted = true;
+                this.muteButton.innerHTML = '🔇'; // Muted icon
+                this.isMuted = true;
+            }
+        }
+
+        showMuteButton() {
+            this.muteButton.style.opacity = '1';
+            this.muteButton.style.pointerEvents = 'auto';
+        }
+
+        hideMuteButton() {
+            this.muteButton.style.opacity = '0';
+            this.muteButton.style.pointerEvents = 'none';
         }
 
         createHoverButton() {
@@ -205,6 +270,12 @@
             this.hoverButton.innerHTML = '⤢';
             this.hoverButton.style.transform = 'rotate(180deg)';
             
+            // Show mute button and unmute video when expanded
+            this.showMuteButton();
+            this.videoElement.muted = false;
+            this.isMuted = false;
+            this.muteButton.innerHTML = '🔊'; // Unmuted icon
+            
             // Play sound if available
             this.playExpansionSound();
             
@@ -226,6 +297,11 @@
             // Change collapse button back to expand button
             this.hoverButton.innerHTML = '⤢';
             this.hoverButton.style.transform = 'rotate(0deg)';
+            
+            // Hide mute button and mute video when collapsed
+            this.hideMuteButton();
+            this.videoElement.muted = true;
+            this.isMuted = true;
             
             // Remove expanded buttons if they exist
             if (this.expandedButtonsContainer) {
