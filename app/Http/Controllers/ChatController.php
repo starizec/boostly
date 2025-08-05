@@ -127,11 +127,6 @@ class ChatController extends Controller
         return $currentTime->between($startTime, $endTime);
     }
 
-    public function widgetVisible($referer)
-    {
-        return $this->isWidgetVisible;
-    }
-
     // API Methods for Chat Widget
     public function startChat(Request $request)
     {

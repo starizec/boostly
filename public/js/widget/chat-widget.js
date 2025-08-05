@@ -11,6 +11,7 @@
             this.initialWidth = 150; // Initial width in pixels
             this.isExpanded = false; // Track expansion state
             this.isMuted = true; // Track mute state
+            this.isChatFormVisible = false; // Track chat form visibility
         }
 
         async init() {
@@ -424,11 +425,227 @@
             // Add click handler for start chat button
             this.startChatButton.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent widget click event
-                this.toggleChat();
+                this.showChatForm();
             });
 
             this.expandedButtonsContainer.appendChild(this.startChatButton);
             this.widgetContainer.appendChild(this.expandedButtonsContainer);
+        }
+
+        showChatForm() {
+            // Hide video and buttons
+            this.videoContainer.style.display = 'none';
+            this.expandedButtonsContainer.style.display = 'none';
+            this.muteButton.style.display = 'none';
+            
+            // Create and show chat form
+            this.createChatForm();
+            
+            this.isChatFormVisible = true;
+        }
+
+        createChatForm() {
+            // Create chat form container
+            this.chatFormContainer = document.createElement('div');
+            this.chatFormContainer.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 10px;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                z-index: 15;
+            `;
+
+            // Create form header
+            const formHeader = document.createElement('div');
+            formHeader.style.cssText = `
+                text-align: center;
+                margin-bottom: 20px;
+                color: white;
+            `;
+            formHeader.innerHTML = `
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: bold;">Start a Conversation</h3>
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">We'd love to hear from you!</p>
+            `;
+
+            // Create form
+            const form = document.createElement('form');
+            form.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                flex: 1;
+            `;
+
+            // Name field
+            const nameField = document.createElement('div');
+            nameField.innerHTML = `
+                <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Name *</label>
+                <input type="text" id="chat-name" required style="
+                    width: 100%;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    color: #333;
+                    box-sizing: border-box;
+                " placeholder="Your name">
+            `;
+
+            // Email field
+            const emailField = document.createElement('div');
+            emailField.innerHTML = `
+                <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Email *</label>
+                <input type="email" id="chat-email" required style="
+                    width: 100%;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    color: #333;
+                    box-sizing: border-box;
+                " placeholder="your.email@example.com">
+            `;
+
+            // Message field
+            const messageField = document.createElement('div');
+            messageField.innerHTML = `
+                <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Message *</label>
+                <textarea id="chat-message" required rows="4" style="
+                    width: 100%;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    color: #333;
+                    box-sizing: border-box;
+                    resize: vertical;
+                    font-family: inherit;
+                " placeholder="Tell us how we can help you..."></textarea>
+            `;
+
+            // Submit button
+            const submitButton = document.createElement('button');
+            submitButton.type = 'submit';
+            submitButton.style.cssText = `
+                background: rgba(255, 255, 255, 0.95);
+                color: #333;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: auto;
+            `;
+            submitButton.innerHTML = 'Send Message';
+
+            // Add hover effect to submit button
+            submitButton.addEventListener('mouseenter', () => {
+                submitButton.style.background = 'rgba(255, 255, 255, 1)';
+                submitButton.style.transform = 'translateY(-2px)';
+            });
+
+            submitButton.addEventListener('mouseleave', () => {
+                submitButton.style.background = 'rgba(255, 255, 255, 0.95)';
+                submitButton.style.transform = 'translateY(0)';
+            });
+
+            // Back button
+            const backButton = document.createElement('button');
+            backButton.type = 'button';
+            backButton.style.cssText = `
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 10px;
+            `;
+            backButton.innerHTML = '← Back to Video';
+
+            // Add hover effect to back button
+            backButton.addEventListener('mouseenter', () => {
+                backButton.style.background = 'rgba(255, 255, 255, 0.3)';
+            });
+
+            backButton.addEventListener('mouseleave', () => {
+                backButton.style.background = 'rgba(255, 255, 255, 0.2)';
+            });
+
+            // Add click handler for back button
+            backButton.addEventListener('click', () => {
+                this.hideChatForm();
+            });
+
+            // Form submit handler
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitChatForm();
+            });
+
+            // Assemble form
+            form.appendChild(nameField);
+            form.appendChild(emailField);
+            form.appendChild(messageField);
+            form.appendChild(submitButton);
+
+            // Assemble container
+            this.chatFormContainer.appendChild(formHeader);
+            this.chatFormContainer.appendChild(form);
+            this.chatFormContainer.appendChild(backButton);
+
+            this.widgetContainer.appendChild(this.chatFormContainer);
+        }
+
+        hideChatForm() {
+            // Show video and buttons
+            this.videoContainer.style.display = 'block';
+            this.expandedButtonsContainer.style.display = 'flex';
+            this.muteButton.style.display = 'flex';
+            
+            // Remove chat form
+            if (this.chatFormContainer) {
+                this.chatFormContainer.remove();
+                this.chatFormContainer = null;
+            }
+            
+            this.isChatFormVisible = false;
+        }
+
+        submitChatForm() {
+            const name = document.getElementById('chat-name').value;
+            const email = document.getElementById('chat-email').value;
+            const message = document.getElementById('chat-message').value;
+
+            if (!name || !email || !message) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Here you would typically send the data to your backend
+            console.log('Chat form submitted:', { name, email, message });
+            
+            // For now, just show a success message
+            alert('Thank you for your message! We\'ll get back to you soon.');
+            
+            // Hide the form and return to video
+            this.hideChatForm();
         }
 
         // Method to expand widget (can be called later when needed)
