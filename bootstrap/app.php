@@ -12,7 +12,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'cors' => \App\Http\Middleware\CorsMiddleware::class,
+        ]);
+        
+        // Add CORS middleware to global stack
+        $middleware->append(\App\Http\Middleware\CorsMiddleware::class);
+        
+        // Exclude CSRF for API routes
+        $middleware->validateCsrfTokens(except: [
+            'verify',
+            'api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

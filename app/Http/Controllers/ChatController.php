@@ -19,6 +19,7 @@ class ChatController extends Controller
     public $isWidgetVisible = false;
     public $domain;
     public $path;
+    public $clientDomain;
 
     public function __construct()
     {
@@ -68,37 +69,36 @@ class ChatController extends Controller
         $domainExists = Domain::where('url', $this->domain)
             ->exists();
 
-        if (!$domainExists) {
-            return response()->json([
-                'allowed' => false,
-                'error' => 'Domain not authorized',
-                'status' => 403
-            ], 403);
-        }
         return $domainExists;
     }
 
-    public function verifyDomain()
+    public function verifyDomain(Request $request)
     {
+        $this->clientDomain = $request->input('client_domain');
+        
         if (!$this->checkDomain()) {
-            return response()->json(['error' => 'Domain not found' . ' ' . parse_url($this->domain, PHP_URL_HOST)], 404);
+            return response()->json([
+                'error' => 'Domain not authorized',
+                'domain' => $this->clientDomain,
+                'message' => 'Domain not found in authorized domains list'
+            ], 403);
         }
 
-        $widgetUrl = WidgetUrl::where('url', $this->domain)
+        $widgetUrl = WidgetUrl::where('url', $this->clientDomain)
             ->first();
 
         if ($widgetUrl) {
-            $widget = Widget::find($widgetUrl->widget_id);
-            $widgetStyle = WidgetStyle::where('widget_id', $widget->id)->first();
+            $widget = Widget::find($widgetUrl->widget_id)->with('widgetAction')->with('style')->with('media')->first();
+
 
             if ($this->isWidgetVisibleToday($widget) && $this->isWidgetVisibleNow($widget)) {
-                return response()->json(['allowed' => true, 'visible' => true, 'widget' => $widget, 'widgetStyle' => $widgetStyle]);
+                return response()->json(['allowed' => true, 'visible' => true, 'widget' => $widget]);
             } else {
                 return response()->json(['allowed' => true, 'visible' => false, 'widget' => false]);
             }
         }
 
-        return response()->json(['allowed' => false, 'visible' => false]);
+        return response()->json(['allowed' => false, 'visible' => false, 'message' => 'No widget found for this domain']);
     }
 
     private function isWidgetVisibleToday($settings)
