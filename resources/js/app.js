@@ -2,50 +2,80 @@ import './bootstrap';
 import { createApp, h } from 'vue';
 import ChatComponent from './components/ChatComponent.vue';
 
-console.log('App.js loaded');
-console.log('ChatComponent:', ChatComponent);
-
 // Create Vue app with a render function
 const app = createApp({
     render() {
         return h('div', [
             h(ChatComponent, {
-                friend: this.friend,
-                'current-user': this.currentUser
+                widget: this.widget,
+                'widget-action': this.widgetAction,
+                'widget-style': this.widgetStyle,
+                media: this.media
             })
         ]);
     },
     data() {
         return {
-            friend: null,
-            currentUser: null
+            widget: null,
+            widgetAction: null,
+            widgetStyle: null,
+            media: null
         }
     },
     mounted() {
-        // Get data from the page
-        const friendData = document.querySelector('[data-friend]')?.dataset.friend;
-        const userData = document.querySelector('[data-user]')?.dataset.user;
-        
-        if (friendData) {
-            this.friend = JSON.parse(friendData);
+        const widgetData = document.querySelector('[data-widget]')?.dataset.widget;
+        const widgetActionData = document.querySelector('[data-widget-action]')?.dataset.widgetAction;
+        const widgetStyleData = document.querySelector('[data-widget-style]')?.dataset.widgetStyle;
+        const mediaData = document.querySelector('[data-media]')?.dataset.media;
+
+        if (widgetData) {
+            try {
+                this.widget = JSON.parse(widgetData);
+            } catch (e) {
+                console.error('Failed to parse widget data:', e);
+            }
+        } else {
+            console.warn('No widget data found in DOM');
         }
-        if (userData) {
-            this.currentUser = JSON.parse(userData);
+        
+        if (widgetActionData) {
+            try {
+                this.widgetAction = JSON.parse(widgetActionData);
+            } catch (e) {
+                console.error('Failed to parse widgetAction data:', e);
+            }
+        } else {
+            console.warn('No widgetAction data found in DOM');
         }
         
-        console.log('Vue app mounted with data:', { friend: this.friend, currentUser: this.currentUser });
+        if (widgetStyleData) {
+            try {
+                this.widgetStyle = JSON.parse(widgetStyleData);
+            } catch (e) {
+                console.error('Failed to parse widgetStyle data:', e);
+            }
+        } else {
+            console.warn('No widgetStyle data found in DOM');
+        }
+        
+        if (mediaData) {
+            try {
+                this.media = JSON.parse(mediaData);
+            } catch (e) {
+                console.error('Failed to parse media data:', e);
+            }
+        } else {
+            console.warn('No media data found in DOM');
+        }
     }
 });
 
-console.log('Component registered');
 
 // Mount the app
 const mountElement = document.getElementById('app');
-console.log('Mount element:', mountElement);
 
 if (mountElement) {
     app.mount('#app');
-    console.log('App mounted successfully');
 } else {
     console.error('Mount element #app not found');
 }

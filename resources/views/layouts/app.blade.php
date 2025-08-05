@@ -6,15 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Chat Application')</title>
     
-    <link rel="stylesheet" href="{{ asset('build/assets/app-DCdfOBS7.css') }}">
-    <script src="{{ asset('build/assets/app-DZWHABEc.js') }}" defer></script>
-    <script>
-        console.log('Layout script loaded');
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded');
-            console.log('App element:', document.getElementById('app'));
-        });
-    </script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     @livewireStyles
     <script src="http://boostly.test/js/widget/chat-widget.js"></script>

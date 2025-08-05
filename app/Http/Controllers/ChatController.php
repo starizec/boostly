@@ -249,7 +249,7 @@ class ChatController extends Controller
     {
         try {
             $chat = Chat::with('contact')->find($chatId);
-            
+
             if (!$chat) {
                 return response()->json([
                     'success' => false,
@@ -275,5 +275,39 @@ class ChatController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function showChat()
+    {
+        $widget = Widget::find(1);
+        $widgetAction = null;
+        $widgetStyle = null;
+        $media = null;
+
+        if ($widget) {
+            $widgetAction = WidgetAction::find($widget->action_id);
+            $widgetStyle = WidgetStyle::where('widget_id', $widget->id)->first();
+            $media = Media::find($widget->media_id);
+        }
+
+        // Create default objects if data doesn't exist
+        if (!$widget) {
+            $widget = new Widget();
+        }
+        if (!$widgetAction) {
+            $widgetAction = new WidgetAction();
+        }
+        if (!$widgetStyle) {
+            $widgetStyle = new WidgetStyle();
+        }
+        if (!$media) {
+            $media = new Media();
+        }
+
+        return view('chatnew')
+            ->with('widget', $widget)
+            ->with('widgetAction', $widgetAction)
+            ->with('widgetStyle', $widgetStyle)
+            ->with('media', $media);
     }
 }
