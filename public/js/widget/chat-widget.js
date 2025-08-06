@@ -16,12 +16,14 @@
             this.currentChat = null; // Store current chat data from response
             this.currentChatId = null; // Store current chat ID
             this.currentContact = null; // Store current contact ID
+            this.widgetId = null; // Store widget ID
         }
 
         async init() {
             try {
                 // Check if chat exists in localStorage
                 const bcId = localStorage.getItem('bc_id');
+                this.widgetId = localStorage.getItem('bw_id') || null;
                 this.chatExist = bcId !== null;
                 
                 if (this.chatExist) {
@@ -38,6 +40,7 @@
                     body: JSON.stringify({
                         client_domain: this.clientDomain,
                         bc_id: this.chatExist ? localStorage.getItem('bc_id') : null,
+                        bw_id: this.widgetId,
                         timestamp: Date.now()
                     })
                 });
@@ -49,6 +52,8 @@
                 const data = await response.json();
                 console.log('Widget verification successful:', data);
                 this.widget = data.widget;
+                this.widgetId = data.widget.id;
+                localStorage.setItem('bw_id', this.widgetId);
                 
                 // Check if response contains chat data and chat exists
                 if (data.chat && this.chatExist) {
