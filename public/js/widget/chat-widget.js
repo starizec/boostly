@@ -303,7 +303,7 @@
 
         expandVideo() {
             const expandedWidth = 300;
-            const expandedHeight = 400; // Fixed height for chat interface
+            const expandedHeight = expandedWidth / this.videoAspectRatio;
             
             this.widgetContainer.style.width = `${expandedWidth}px`;
             this.widgetContainer.style.height = `${expandedHeight}px`;
@@ -1030,8 +1030,11 @@
 
         // Method to expand widget (can be called later when needed)
         expandWidget() {
-            this.widgetContainer.style.width = '350px';
-            this.widgetContainer.style.height = '400px';
+            const expandedWidth = 350;
+            const expandedHeight = expandedWidth / this.videoAspectRatio;
+            
+            this.widgetContainer.style.width = `${expandedWidth}px`;
+            this.widgetContainer.style.height = `${expandedHeight}px`;
             this.createChatButton();
         }
 
