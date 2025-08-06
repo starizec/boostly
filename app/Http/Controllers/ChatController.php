@@ -86,8 +86,8 @@ class ChatController extends Controller
         }
 
         if ($request->input('bc_id') && $request->input('bw_id')) {
-            $chat = Chat::find($request->input('bc_id'))->with('messages')->first();
-            $widget = Widget::find($request->input('bw_id'))->with('widgetAction')->with('style')->with('media')->first();
+            $chat = Chat::with('messages')->find($request->input('bc_id'));
+            $widget = Widget::with('widgetAction')->with('style')->with('media')->find($request->input('bw_id'));
 
             if ($chat) {
                 return response()->json(['allowed' => true, 'visible' => true, 'widget' => $widget, 'chat' => $chat]);

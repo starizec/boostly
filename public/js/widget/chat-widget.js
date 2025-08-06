@@ -474,15 +474,30 @@
         }
 
         showChatForm() {
-            // Hide video and buttons
-            this.videoContainer.style.display = 'none';
-            this.expandedButtonsContainer.style.display = 'none';
-            this.muteButton.style.display = 'none';
-            
-            // Create and show chat form
-            this.createChatForm();
-            
-            this.isChatFormVisible = true;
+            // Check if there's a previous chat
+            if (this.chatExist && this.currentChatId) {
+                console.log('Previous chat exists, opening chat interface directly');
+                // Hide video and buttons
+                this.videoContainer.style.display = 'none';
+                this.expandedButtonsContainer.style.display = 'none';
+                this.muteButton.style.display = 'none';
+                
+                // Create and show chat interface directly
+                this.createChatInterface();
+                
+                // Load messages
+                this.loadMessages();
+            } else {
+                // Hide video and buttons
+                this.videoContainer.style.display = 'none';
+                this.expandedButtonsContainer.style.display = 'none';
+                this.muteButton.style.display = 'none';
+                
+                // Create and show chat form
+                this.createChatForm();
+                
+                this.isChatFormVisible = true;
+            }
         }
 
         createChatForm() {
