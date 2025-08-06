@@ -17,6 +17,7 @@
             this.currentChatId = null; // Store current chat ID
             this.currentContact = null; // Store current contact ID
             this.widgetId = null; // Store widget ID
+            this.echo = null; // Echo instance for real-time communication
         }
 
         async init() {
@@ -65,6 +66,9 @@
                     // Initialize widget first
                     this.initializeWidget();
                     
+                    // Initialize Echo for real-time communication
+                    this.initializeEcho();
+                    
                     // Then open chat interface directly
                     setTimeout(() => {
                         this.expandVideo();
@@ -84,6 +88,223 @@
         initializeWidget() {
             // Create the widget container with video background
             this.createWidget();
+        }
+
+        initializeEcho() {
+            // Simple WebSocket implementation for real-time communication
+            try {
+                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsHost = this.host.replace('http://', '').replace('https://', '');
+                const wsUrl = `${wsProtocol}//${wsHost}:8080`;
+                
+                // Prevent multiple connection attempts
+                if (this.websocket && this.websocket.readyState !== WebSocket.CLOSED) {
+                    console.log('WebSocket already exists, skipping initialization');
+                    return;
+                }
+                
+                this.websocket = new WebSocket(wsUrl);
+                
+                this.websocket.onopen = () => {
+                    console.log('WebSocket connected for real-time communication');
+                    this.reconnectAttempts = 0; // Reset reconnect attempts
+                    
+                    // Subscribe to the chat channel
+                    if (this.currentChatId) {
+                        this.websocket.send(JSON.stringify({
+                            event: 'subscribe',
+                            channel: `chat.${this.currentChatId}`
+                        }));
+                    }
+                };
+                
+                this.websocket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.event === 'MessageSent' && data.data) {
+                            console.log('Received real-time message:', data.data);
+                            
+                            // Only display messages from agent (admin), not from user
+                            if (data.data.type === 'agent') {
+                                this.displayNewMessage(data.data);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+                
+                this.websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+                
+                this.websocket.onclose = () => {
+                    console.log('WebSocket connection closed');
+                    
+                    // Only attempt reconnection if we have a chat ID and haven't exceeded max attempts
+                    if (this.currentChatId && (!this.reconnectAttempts || this.reconnectAttempts < 3)) {
+                        this.reconnectAttempts = (this.reconnectAttempts || 0) + 1;
+                        console.log(`Attempting reconnection ${this.reconnectAttempts}/3...`);
+                        
+                        setTimeout(() => {
+                            if (this.currentChatId) {
+                                this.initializeEcho();
+                            }
+                        }, 5000);
+                    } else if (this.reconnectAttempts >= 3) {
+                        console.log('Max reconnection attempts reached. Real-time messaging disabled.');
+                    }
+                };
+                
+            } catch (error) {
+                console.warn('WebSocket not available for real-time communication:', error);
+            }
+        }
+
+        listenForMessages() {
+            if (!this.currentChatId) {
+                console.warn('Cannot listen for messages: No chat ID');
+                return;
+            }
+
+            console.log('Listening for messages on chat channel:', this.currentChatId);
+
+            // Try WebSocket first
+            if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+                this.websocket.send(JSON.stringify({
+                    event: 'subscribe',
+                    channel: `chat.${this.currentChatId}`
+                }));
+            } else {
+                // Fallback to polling if WebSocket is not available
+                this.startPolling();
+            }
+        }
+
+        startPolling() {
+            if (this.pollingInterval) {
+                clearInterval(this.pollingInterval);
+            }
+
+            console.log('Starting polling for new messages...');
+            
+            this.pollingInterval = setInterval(() => {
+                this.checkForNewMessages();
+            }, 2000); // Check every 2 seconds
+        }
+
+        checkForNewMessages() {
+            if (!this.currentChatId) return;
+
+            fetch(`${this.host}/api/chat/messages/${this.currentChatId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.messages) {
+                        // Get the last message timestamp we've seen
+                        const lastMessageTime = this.lastMessageTime || 0;
+                        
+                        // Check for new messages
+                        const newMessages = data.messages.filter(msg => {
+                            const messageTime = new Date(msg.created_at).getTime();
+                            return messageTime > lastMessageTime && msg.type === 'agent';
+                        });
+
+                        if (newMessages.length > 0) {
+                            console.log('Found new messages via polling:', newMessages);
+                            
+                            // Update last message time
+                            this.lastMessageTime = new Date(newMessages[newMessages.length - 1].created_at).getTime();
+                            
+                            // Display new messages
+                            newMessages.forEach(message => {
+                                this.displayNewMessage(message);
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error polling for messages:', error);
+                });
+        }
+
+        displayNewMessage(messageData) {
+            // Create message element
+            const messageElement = this.createMessageElement(messageData);
+            
+            // Add to messages container
+            this.messagesContainer.appendChild(messageElement);
+            
+            // Scroll to bottom
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            
+            // Play notification sound
+            this.playNotificationSound();
+            
+            // Show notification if widget is collapsed
+            if (!this.isExpanded) {
+                this.showMessageNotification(messageData.message);
+            }
+        }
+
+        playNotificationSound() {
+            // Create audio element for notification sound
+            const audio = new Audio();
+            
+            // Set audio source if available in widget data
+            if (this.widget && this.widget.media && this.widget.media.notification_sound_url) {
+                audio.src = `${this.host}/storage/${this.widget.media.notification_sound_url}`;
+            } else {
+                // Fallback to a simple notification sound
+                audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
+            }
+            
+            audio.volume = 0.3; // Set volume to 30%
+            audio.play().catch(error => {
+                console.log('Notification sound playback failed:', error);
+            });
+        }
+
+        showMessageNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: absolute;
+                top: -60px;
+                right: 0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                padding: 10px 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                color: #333;
+                font-size: 12px;
+                max-width: 200px;
+                word-wrap: break-word;
+                z-index: 1000;
+                animation: slideDown 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">New Message</div>
+                <div>${message.substring(0, 50)}${message.length > 50 ? '...' : ''}</div>
+            `;
+            
+            // Add CSS animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideDown {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            this.widgetContainer.appendChild(notification);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
         }
 
         createWidget() {
@@ -759,6 +980,14 @@
             // Create chat interface
             this.createChatInterface();
             
+            // Initialize Echo if not already done
+            if (!this.echo) {
+                this.initializeEcho();
+            }
+            
+            // Start listening for real-time messages
+            this.listenForMessages();
+            
             // Check if we have messages from the response
             if (this.currentChat && this.currentChat.messages) {
                 console.log('Using messages from response:', this.currentChat.messages);
@@ -949,6 +1178,11 @@
                 this.messagesContainer.appendChild(messageElement);
             });
             
+            // Set the last message time for polling
+            if (messages.length > 0) {
+                this.lastMessageTime = new Date(messages[messages.length - 1].created_at).getTime();
+            }
+            
             // Scroll to bottom
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
         }
@@ -1111,6 +1345,26 @@
             // Toggle chat functionality
             console.log('Chat button clicked!');
             // You can expand this to show/hide chat interface
+        }
+
+        // Cleanup method
+        destroy() {
+            // Clear polling interval
+            if (this.pollingInterval) {
+                clearInterval(this.pollingInterval);
+                this.pollingInterval = null;
+            }
+            
+            // Close WebSocket connection
+            if (this.websocket) {
+                this.websocket.close();
+                this.websocket = null;
+            }
+            
+            // Remove widget from DOM
+            if (this.widgetContainer) {
+                this.widgetContainer.remove();
+            }
         }
 
     }

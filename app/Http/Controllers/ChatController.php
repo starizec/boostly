@@ -12,6 +12,7 @@ use App\Models\WidgetStyle;
 use App\Models\Chat;
 use App\Models\ChatMessage;
 use App\Models\Contact;
+use App\Events\MessageSent;
 use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
@@ -177,6 +178,9 @@ class ChatController extends Controller
                 'is_read' => false,
             ]);
 
+            // Broadcast the message event
+            broadcast(new MessageSent($message))->toOthers();
+
             return response()->json([
                 'success' => true,
                 'chat_id' => $chat->id,
@@ -217,6 +221,9 @@ class ChatController extends Controller
             Chat::where('id', $request->chat_id)->update([
                 'last_message_at' => now()
             ]);
+
+            // Broadcast the message event
+            broadcast(new MessageSent($message))->toOthers();
 
             return response()->json([
                 'success' => true,
@@ -280,6 +287,47 @@ class ChatController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get chat status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendAdminMessage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'chat_id' => 'required|exists:chats,id',
+            'message' => 'required|string|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $message = ChatMessage::create([
+                'chat_id' => $request->chat_id,
+                'message' => $request->message,
+                'type' => 'agent', // Admin/agent message
+                'is_read' => false,
+            ]);
+
+            // Update chat last message time
+            Chat::where('id', $request->chat_id)->update([
+                'last_message_at' => now()
+            ]);
+
+            // Broadcast the message event
+            broadcast(new MessageSent($message))->toOthers();
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send message',
                 'error' => $e->getMessage()
             ], 500);
         }

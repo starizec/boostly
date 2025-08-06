@@ -16,6 +16,10 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Enums\ActionsPosition;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
+use App\Models\ChatMessage;
+use App\Events\MessageSent;
 
 class ChatResource extends Resource
 {
@@ -95,20 +99,34 @@ class ChatResource extends Resource
                             ->rows(3),
                     ])
                     ->action(function (Chat $record, array $data): void {
-                        $record->messages()->create([
-                            'message' => $data['message'],
-                            'type' => 'agent',
-                            'is_read' => false,
-                        ]);
+                        try {
+                            // Create the message directly
+                            $message = ChatMessage::create([
+                                'chat_id' => $record->id,
+                                'message' => $data['message'],
+                                'type' => 'agent',
+                                'is_read' => false,
+                            ]);
 
-                        $record->update([
-                            'last_message_at' => now(),
-                        ]);
+                            // Update chat last message time
+                            $record->update([
+                                'last_message_at' => now()
+                            ]);
 
-                        Notification::make()
-                            ->title('Response sent successfully')
-                            ->success()
-                            ->send();
+                            // Broadcast the message event
+                            broadcast(new MessageSent($message))->toOthers();
+
+                            Notification::make()
+                                ->title('Response sent successfully')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Failed to send response')
+                                ->body('Error: ' . $e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     })
                     ->icon('heroicon-o-chat-bubble-left')
                     ->color('success')

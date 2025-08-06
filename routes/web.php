@@ -11,4 +11,5 @@ Route::prefix('api/chat')->middleware('cors')->group(function () {
     Route::post('/message', [ChatController::class, 'sendMessage'])->name('chat.message');
     Route::get('/messages/{chatId}', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::get('/status/{chatId}', [ChatController::class, 'getChatStatus'])->name('chat.status');
+    Route::post('/admin/message', [ChatController::class, 'sendAdminMessage'])->name('chat.admin.message');
 });
