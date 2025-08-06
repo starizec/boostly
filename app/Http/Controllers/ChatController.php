@@ -74,6 +74,7 @@ class ChatController extends Controller
 
     public function verifyDomain(Request $request)
     {
+
         $this->clientDomain = $request->input('client_domain');
         
         if (!$this->checkDomain()) {
@@ -84,6 +85,13 @@ class ChatController extends Controller
             ], 403);
         }
 
+        if ($request->input('bc_id')) {
+            $chat = Chat::find($request->input('bc_id'))->with('messages')->first();
+            if ($chat) {
+                return response()->json(['allowed' => true, 'visible' => true, 'widget' => null, 'chat' => $chat]);
+            }
+        }
+
         $widgetUrl = WidgetUrl::where('url', $this->clientDomain)
             ->first();
 
@@ -92,9 +100,9 @@ class ChatController extends Controller
 
 
             if ($this->isWidgetVisibleToday($widget) && $this->isWidgetVisibleNow($widget)) {
-                return response()->json(['allowed' => true, 'visible' => true, 'widget' => $widget]);
+                return response()->json(['allowed' => true, 'visible' => true, 'widget' => $widget, 'chat' => null]);
             } else {
-                return response()->json(['allowed' => true, 'visible' => false, 'widget' => false]);
+                return response()->json(['allowed' => true, 'visible' => false, 'widget' => false, 'chat' => null]);
             }
         }
 

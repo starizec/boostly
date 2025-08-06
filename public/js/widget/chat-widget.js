@@ -34,6 +34,7 @@
                     },
                     body: JSON.stringify({
                         client_domain: this.clientDomain,
+                        bc_id: this.chatExist ? localStorage.getItem('bc_id') : null,
                         timestamp: Date.now()
                     })
                 });
