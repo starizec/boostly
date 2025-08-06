@@ -13,6 +13,9 @@
             this.isMuted = true; // Track mute state
             this.isChatFormVisible = false; // Track chat form visibility
             this.chatExist = false; // Track if chat exists in localStorage
+            this.currentChat = null; // Store current chat data from response
+            this.currentChatId = null; // Store current chat ID
+            this.currentContact = null; // Store current contact ID
         }
 
         async init() {
@@ -46,8 +49,26 @@
                 const data = await response.json();
                 console.log('Widget verification successful:', data);
                 this.widget = data.widget;
-                // Continue with widget initialization
-                this.initializeWidget();
+                
+                // Check if response contains chat data and chat exists
+                if (data.chat && this.chatExist) {
+                    console.log('Existing chat found in response, opening chat interface');
+                    this.currentChatId = data.chat.id;
+                    this.currentContact = data.chat.contact_id;
+                    this.currentChat = data.chat; // Store the entire chat object
+                    
+                    // Initialize widget first
+                    this.initializeWidget();
+                    
+                    // Then open chat interface directly
+                    setTimeout(() => {
+                        this.expandVideo();
+                        this.showChatInterface();
+                    }, 1000);
+                } else {
+                    // Continue with normal widget initialization
+                    this.initializeWidget();
+                }
                 
             } catch (error) {
                 console.error('Widget verification failed:', error);
@@ -277,7 +298,7 @@
 
         expandVideo() {
             const expandedWidth = 300;
-            const expandedHeight = expandedWidth / this.videoAspectRatio;
+            const expandedHeight = 400; // Fixed height for chat interface
             
             this.widgetContainer.style.width = `${expandedWidth}px`;
             this.widgetContainer.style.height = `${expandedHeight}px`;
@@ -704,13 +725,21 @@
 
         showChatInterface() {
             // Hide form and show chat interface
-            this.chatFormContainer.style.display = 'none';
+            if (this.chatFormContainer) {
+                this.chatFormContainer.style.display = 'none';
+            }
             
             // Create chat interface
             this.createChatInterface();
             
-            // Load messages
-            this.loadMessages();
+            // Check if we have messages from the response
+            if (this.currentChat && this.currentChat.messages) {
+                console.log('Using messages from response:', this.currentChat.messages);
+                this.displayMessages(this.currentChat.messages);
+            } else {
+                // Load messages from API
+                this.loadMessages();
+            }
         }
 
         createChatInterface() {
@@ -997,7 +1026,7 @@
         // Method to expand widget (can be called later when needed)
         expandWidget() {
             this.widgetContainer.style.width = '350px';
-            this.widgetContainer.style.height = '500px';
+            this.widgetContainer.style.height = '400px';
             this.createChatButton();
         }
 
