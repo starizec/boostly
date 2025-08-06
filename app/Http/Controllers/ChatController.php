@@ -146,10 +146,12 @@ class ChatController extends Controller
             'message' => 'required|string|min:1',
         ]);
 
+       
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
+        
         try {
             // Create contact
             $contact = Contact::create([
@@ -161,6 +163,7 @@ class ChatController extends Controller
             // Create new chat
             $chat = Chat::create([
                 'contact_id' => $contact->id,
+                'widget_id' => $request->bw_id,
                 'status' => 'active',
                 'last_message_at' => now(),
                 'title' => 'Chat with ' . $request->name,

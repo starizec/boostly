@@ -16,6 +16,7 @@ class Chat extends Model
     protected $fillable = [
         'title',
         'contact_id',
+        'widget_id',
         'status',
         'last_message_at',
     ];
@@ -33,6 +34,14 @@ class Chat extends Model
     }
 
     /**
+     * Get the widget associated with the chat.
+     */
+    public function widget(): BelongsTo
+    {
+        return $this->belongsTo(Widget::class);
+    }
+
+    /**
      * Get the messages for the chat.
      */
     public function messages(): HasMany
@@ -45,7 +54,7 @@ class Chat extends Model
      */
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(ChatTag::class, 'chat_tag')
+        return $this->belongsToMany(ChatTag::class)
             ->withTimestamps();
     }
 

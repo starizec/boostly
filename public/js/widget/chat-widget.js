@@ -699,7 +699,12 @@
             const originalText = submitButton.innerHTML;
             submitButton.innerHTML = 'Sending...';
             submitButton.disabled = true;
-
+            console.log(JSON.stringify({
+                name: name,
+                email: email,
+                message: message,
+                client_domain: this.clientDomain
+            }));
             // Make API call to Laravel backend
             fetch(`${this.host}/api/chat/start`, {
                 method: 'POST',
@@ -711,11 +716,13 @@
                     name: name,
                     email: email,
                     message: message,
-                    client_domain: this.clientDomain
+                    client_domain: this.clientDomain,
+                    bw_id: this.widgetId
                 })
             })
             .then(response => response.json())
             .then(data => {
+                console.log('data', data);
                 if (data.success) {
                     console.log('data', data);
                     // Store chat_id to localStorage
