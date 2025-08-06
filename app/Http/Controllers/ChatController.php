@@ -21,7 +21,7 @@ class ChatController extends Controller
     public $domain;
     public $path;
     public $clientDomain;
-
+    public $clientUrl;
     public function __construct()
     {
         $referer = request()->headers->get('referer');
@@ -77,6 +77,7 @@ class ChatController extends Controller
     {
 
         $this->clientDomain = $request->input('client_domain');
+        $this->clientUrl = $request->input('client_url');
         
         if (!$this->checkDomain()) {
             return response()->json([
@@ -95,12 +96,11 @@ class ChatController extends Controller
             }
         }
 
-        $widgetUrl = WidgetUrl::where('url', $this->clientDomain)
+        $widgetUrl = WidgetUrl::where('url', $this->clientUrl)
             ->first();
 
         if ($widgetUrl) {
-            $widget = Widget::find($widgetUrl->widget_id)->with('widgetAction')->with('style')->with('media')->first();
-
+            $widget = Widget::with('widgetAction')->with('style')->with('media')->find($widgetUrl->widget_id);
 
             if ($this->isWidgetVisibleToday($widget) && $this->isWidgetVisibleNow($widget)) {
                 return response()->json(['allowed' => true, 'visible' => true, 'widget' => $widget, 'chat' => null]);

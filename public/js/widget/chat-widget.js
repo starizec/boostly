@@ -6,6 +6,7 @@
             this.host = 'http://boostly.test';
             this.scriptTag = document.currentScript;
             this.clientDomain = `${window.location.protocol}//${window.location.host}`;
+            this.clientUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
             this.widget = null;
             this.videoAspectRatio = 16/9; // Default aspect ratio
             this.initialWidth = 150; // Initial width in pixels
@@ -40,6 +41,7 @@
                     },
                     body: JSON.stringify({
                         client_domain: this.clientDomain,
+                        client_url: this.clientUrl,
                         bc_id: this.chatExist ? localStorage.getItem('bc_id') : null,
                         bw_id: this.widgetId,
                         timestamp: Date.now()
