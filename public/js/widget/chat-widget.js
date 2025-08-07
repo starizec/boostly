@@ -614,17 +614,26 @@
             // Create Action Button
             if (this.widget && this.widget.widget_action) {
                 this.actionButton = document.createElement('div');
+                
+                // Apply action button styles from widget style object
+                const actionButtonStyles = this.widget && this.widget.style ? this.widget.style : {};
+                const actionBorderRadius = actionButtonStyles.action_button_border_radius || 8;
+                const actionBackgroundColor = actionButtonStyles.action_button_background_color || 'rgba(255, 255, 255, 0.95)';
+                const actionTextColor = actionButtonStyles.action_button_text_color || '#333';
+                const actionHoverBackgroundColor = actionButtonStyles.action_button_hover_background_color || 'rgba(255, 255, 255, 1)';
+                const actionHoverTextColor = actionButtonStyles.action_button_hover_text_color || '#333';
+                
                 this.actionButton.style.cssText = `
-                    background: rgba(255, 255, 255, 0.95);
+                    background: ${actionBackgroundColor};
                     backdrop-filter: blur(10px);
                     padding: 12px 16px;
-                    border-radius: 8px;
+                    border-radius: ${actionBorderRadius}px;
                     text-align: center;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     font-weight: bold;
-                    color: #333;
+                    color: ${actionTextColor};
                     font-size: 14px;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 `;
@@ -632,14 +641,16 @@
                 const actionText = this.widget.widget_action.button_text || 'Take Action';
                 this.actionButton.innerHTML = actionText;
 
-                // Add hover effect
+                // Add hover effect with custom colors
                 this.actionButton.addEventListener('mouseenter', () => {
-                    this.actionButton.style.background = 'rgba(255, 255, 255, 1)';
+                    this.actionButton.style.background = actionHoverBackgroundColor;
+                    this.actionButton.style.color = actionHoverTextColor;
                     this.actionButton.style.transform = 'translateY(-2px)';
                 });
 
                 this.actionButton.addEventListener('mouseleave', () => {
-                    this.actionButton.style.background = 'rgba(255, 255, 255, 0.95)';
+                    this.actionButton.style.background = actionBackgroundColor;
+                    this.actionButton.style.color = actionTextColor;
                     this.actionButton.style.transform = 'translateY(0)';
                 });
 
@@ -656,17 +667,26 @@
 
             // Create Start Chat Button
             this.startChatButton = document.createElement('div');
+            
+            // Apply chat button styles from widget style object
+            const chatButtonStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const borderRadius = chatButtonStyles.chat_button_border_radius || 8;
+            const backgroundColor = chatButtonStyles.chat_button_background_color || 'rgba(255, 255, 255, 0.95)';
+            const textColor = chatButtonStyles.chat_button_text_color || '#333';
+            const hoverBackgroundColor = chatButtonStyles.chat_button_hover_background_color || 'rgba(255, 255, 255, 1)';
+            const hoverTextColor = chatButtonStyles.chat_button_hover_text_color || '#333';
+            
             this.startChatButton.style.cssText = `
-                background: rgba(255, 255, 255, 0.95);
+                background: ${backgroundColor};
                 backdrop-filter: blur(10px);
                 padding: 12px 16px;
-                border-radius: 8px;
+                border-radius: ${borderRadius}px;
                 text-align: center;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 font-weight: bold;
-                color: #333;
+                color: ${textColor};
                 font-size: 14px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             `;
@@ -675,14 +695,16 @@
                 this.widget.button_text : '💬 Start Chat';
             this.startChatButton.innerHTML = chatText;
 
-            // Add hover effect
+            // Add hover effect with custom colors
             this.startChatButton.addEventListener('mouseenter', () => {
-                this.startChatButton.style.background = 'rgba(255, 255, 255, 1)';
+                this.startChatButton.style.background = hoverBackgroundColor;
+                this.startChatButton.style.color = hoverTextColor;
                 this.startChatButton.style.transform = 'translateY(-2px)';
             });
 
             this.startChatButton.addEventListener('mouseleave', () => {
-                this.startChatButton.style.background = 'rgba(255, 255, 255, 0.95)';
+                this.startChatButton.style.background = backgroundColor;
+                this.startChatButton.style.color = textColor;
                 this.startChatButton.style.transform = 'translateY(0)';
             });
 
