@@ -113,7 +113,12 @@
             // Set background based on available options
             let backgroundStyle = widgetBackgroundColor1;
             if (widgetBackgroundUrl) {
-                backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                // Check if it's an external URL (starts with http/https) or local path
+                if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
+                    backgroundStyle = `url(${widgetBackgroundUrl})`;
+                } else {
+                    backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                }
             } else if (widgetBackgroundColor2) {
                 backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
             }
@@ -381,7 +386,12 @@
             // Set background based on available options
             let backgroundStyle = widgetBackgroundColor1;
             if (widgetBackgroundUrl) {
-                backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                // Check if it's an external URL (starts with http/https) or local path
+                if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
+                    backgroundStyle = `url(${widgetBackgroundUrl})`;
+                } else {
+                    backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                }
             } else if (widgetBackgroundColor2) {
                 backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
             }
@@ -834,6 +844,23 @@
         }
 
         createChatForm() {
+            // Get widget styles for background
+            const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
+            const widgetBackgroundColor1 = widgetStyles.widget_background_color_1 || '#667eea';
+            const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
+            
+            // Set background based on available options
+            let backgroundStyle = widgetBackgroundColor1;
+            if (widgetBackgroundUrl) {
+                // Check if it's an external URL (starts with http/https) or local path
+                if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
+                    backgroundStyle = `url(${widgetBackgroundUrl})`;
+                } else {
+                    backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                }
+            }
+            
             // Create chat form container
             this.chatFormContainer = document.createElement('div');
             this.chatFormContainer.style.cssText = `
@@ -842,8 +869,11 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 10px;
+                background: ${backgroundStyle};
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                border-radius: ${widgetBorderRadius}px;
                 padding: 20px;
                 display: flex;
                 flex-direction: column;
@@ -1125,6 +1155,23 @@
         }
 
         createChatInterface() {
+            // Get widget styles for background
+            const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
+            const widgetBackgroundColor1 = widgetStyles.widget_background_color_1 || '#667eea';
+            const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
+            
+            // Set background based on available options
+            let backgroundStyle = widgetBackgroundColor1;
+            if (widgetBackgroundUrl) {
+                // Check if it's an external URL (starts with http/https) or local path
+                if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
+                    backgroundStyle = `url(${widgetBackgroundUrl})`;
+                } else {
+                    backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                }
+            }
+            
             // Create chat interface container
             this.chatInterfaceContainer = document.createElement('div');
             this.chatInterfaceContainer.style.cssText = `
@@ -1133,8 +1180,11 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 10px;
+                background: ${backgroundStyle};
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                border-radius: ${widgetBorderRadius}px;
                 display: flex;
                 flex-direction: column;
                 z-index: 15;
