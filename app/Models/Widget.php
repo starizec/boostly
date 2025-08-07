@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Widget extends Model
@@ -71,9 +72,9 @@ class Widget extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function style(): BelongsTo
+    public function style(): HasOne
     {
-        return $this->belongsTo(WidgetStyle::class);
+        return $this->hasOne(WidgetStyle::class, 'widget_id');
     }
 
     public function widgetUrls(): HasMany
