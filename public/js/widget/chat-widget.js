@@ -90,6 +90,49 @@
         initializeWidget() {
             // Create the widget container with video background
             this.createWidget();
+            
+            // Apply widget styles after creation to ensure they're applied
+            this.applyWidgetStyles();
+        }
+
+        applyWidgetStyles() {
+            if (!this.widgetContainer || !this.widget || !this.widget.style) {
+                console.log('Cannot apply widget styles: missing container or widget data');
+                console.log('Widget object:', this.widget);
+                return;
+            }
+            
+            const widgetStyles = this.widget.style;
+            console.log('Raw widget styles object:', widgetStyles);
+            const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
+            const widgetBackgroundColor1 = widgetStyles.widget_background_color_1 || '#FFFFFF';
+            const widgetBackgroundColor2 = widgetStyles.widget_background_color_2 || null;
+            const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
+            const widgetTextColor = widgetStyles.widget_text_color || '#000000';
+            
+            // Set background based on available options
+            let backgroundStyle = widgetBackgroundColor1;
+            if (widgetBackgroundUrl) {
+                backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+            } else if (widgetBackgroundColor2) {
+                backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
+            }
+            
+            // Apply styles to widget container
+            this.widgetContainer.style.borderRadius = `${widgetBorderRadius}px`;
+            this.widgetContainer.style.background = backgroundStyle;
+            this.widgetContainer.style.color = widgetTextColor;
+            
+            // Apply border radius to video container as well
+            if (this.videoContainer) {
+                this.videoContainer.style.borderRadius = `${widgetBorderRadius}px`;
+            }
+            
+            console.log('Widget styles applied:', {
+                borderRadius: widgetBorderRadius,
+                background: backgroundStyle,
+                textColor: widgetTextColor
+            });
         }
 
         initializeEcho() {
@@ -313,9 +356,36 @@
             // Calculate height based on aspect ratio and initial width
             const initialHeight = this.initialWidth / this.videoAspectRatio;
 
+            // Apply widget styles from widget style object
+            const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
+            const widgetBackgroundColor1 = widgetStyles.widget_background_color_1 || '#FFFFFF';
+            const widgetBackgroundColor2 = widgetStyles.widget_background_color_2 || null;
+            const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
+            const widgetTextColor = widgetStyles.widget_text_color || '#000000';
+            const widgetWidth = widgetStyles.widget_width || '300px';
+            
+            // Debug log to verify widget styles are being applied
+            console.log('Widget styles:', {
+                widgetStyles,
+                widgetBorderRadius,
+                widgetBackgroundColor1,
+                widgetTextColor
+            });
+            console.log('Full widget data:', this.widget);
+
             // Create main widget container
             this.widgetContainer = document.createElement('div');
             this.widgetContainer.id = 'boostly-chat-widget';
+            
+            // Set background based on available options
+            let backgroundStyle = widgetBackgroundColor1;
+            if (widgetBackgroundUrl) {
+                backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+            } else if (widgetBackgroundColor2) {
+                backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
+            }
+            
             this.widgetContainer.style.cssText = `
                 position: fixed;
                 bottom: 20px;
@@ -324,11 +394,13 @@
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 width: ${this.initialWidth}px;
                 height: ${initialHeight}px;
-                border-radius: 10px;
+                border-radius: ${widgetBorderRadius}px;
                 overflow: hidden;
                 box-shadow: 0 5px 20px rgba(0,0,0,0.1);
                 transition: all 0.3s ease;
                 cursor: pointer;
+                background: ${backgroundStyle};
+                color: ${widgetTextColor};
             `;
 
             // Create video background div
@@ -348,6 +420,10 @@
         }
 
         createVideoBackground() {
+            // Get widget border radius for consistency
+            const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
+            
             // Create video background container
             this.videoContainer = document.createElement('div');
             this.videoContainer.style.cssText = `
@@ -357,7 +433,7 @@
                 width: 100%;
                 height: 100%;
                 background: #000;
-                border-radius: 10px;
+                border-radius: ${widgetBorderRadius}px;
                 overflow: hidden;
             `;
 
@@ -617,7 +693,7 @@
                 
                 // Apply action button styles from widget style object
                 const actionButtonStyles = this.widget && this.widget.style ? this.widget.style : {};
-                const actionBorderRadius = actionButtonStyles.action_button_border_radius || 8;
+                const actionBorderRadius = actionButtonStyles.action_button_border_radius ?? 8;
                 const actionBackgroundColor = actionButtonStyles.action_button_background_color || 'rgba(255, 255, 255, 0.95)';
                 const actionTextColor = actionButtonStyles.action_button_text_color || '#333';
                 const actionHoverBackgroundColor = actionButtonStyles.action_button_hover_background_color || 'rgba(255, 255, 255, 1)';
@@ -670,7 +746,7 @@
             
             // Apply chat button styles from widget style object
             const chatButtonStyles = this.widget && this.widget.style ? this.widget.style : {};
-            const borderRadius = chatButtonStyles.chat_button_border_radius || 8;
+            const borderRadius = chatButtonStyles.chat_button_border_radius ?? 8;
             const backgroundColor = chatButtonStyles.chat_button_background_color || 'rgba(255, 255, 255, 0.95)';
             const textColor = chatButtonStyles.chat_button_text_color || '#333';
             const hoverBackgroundColor = chatButtonStyles.chat_button_hover_background_color || 'rgba(255, 255, 255, 1)';
