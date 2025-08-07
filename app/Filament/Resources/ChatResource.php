@@ -25,7 +25,21 @@ class ChatResource extends Resource
 {
     protected static ?string $model = Chat::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+
+    protected static ?string $navigationGroup = 'Communication';
+
+    public static function getNavigationItems(): array
+    {
+        return [
+            ...parent::getNavigationItems(),
+            \Filament\Navigation\NavigationItem::make('Chat Interface')
+                ->url(static::getUrl('chat-interface'))
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.resources.chats.chat-interface'))
+                ->sort(1),
+        ];
+    }
 
     public static function form(Form $form): Form
     {
@@ -159,6 +173,7 @@ class ChatResource extends Resource
             'index' => Pages\ListChats::route('/'),
             'create' => Pages\CreateChat::route('/create'),
             'edit' => Pages\EditChat::route('/{record}/edit'),
+            'chat-interface' => Pages\ChatInterface::route('/chat-interface'),
         ];
     }
 }

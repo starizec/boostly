@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChatMessage extends Model
 {
@@ -17,4 +18,20 @@ class ChatMessage extends Model
     protected $casts = [
         'is_read' => 'boolean'
     ];
+
+    /**
+     * Get the chat that owns the message.
+     */
+    public function chat(): BelongsTo
+    {
+        return $this->belongsTo(Chat::class);
+    }
+
+    /**
+     * Get the agent (user) who sent the message.
+     */
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'agent_id');
+    }
 }
