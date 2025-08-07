@@ -705,6 +705,12 @@
                 this.expandedButtonsContainer.style.display = 'none';
                 this.muteButton.style.display = 'none';
                 
+                // Mute and pause video when chat interface is shown
+                this.videoElement.muted = true;
+                this.videoElement.pause();
+                this.isMuted = true;
+                this.muteButton.innerHTML = '🔇'; // Muted icon
+                
                 // Create and show chat interface directly
                 this.createChatInterface();
                 
@@ -715,6 +721,12 @@
                 this.videoContainer.style.display = 'none';
                 this.expandedButtonsContainer.style.display = 'none';
                 this.muteButton.style.display = 'none';
+                
+                // Mute and pause video when chat form is shown
+                this.videoElement.muted = true;
+                this.videoElement.pause();
+                this.isMuted = true;
+                this.muteButton.innerHTML = '🔇'; // Muted icon
                 
                 // Create and show chat form
                 this.createChatForm();
@@ -898,6 +910,14 @@
             this.expandedButtonsContainer.style.display = 'flex';
             this.muteButton.style.display = 'flex';
             
+            // Resume video playback when returning to video interface
+            if (this.isExpanded) {
+                this.videoElement.muted = false;
+                this.videoElement.play();
+                this.isMuted = false;
+                this.muteButton.innerHTML = '🔊'; // Unmuted icon
+            }
+            
             // Remove chat form
             if (this.chatFormContainer) {
                 this.chatFormContainer.remove();
@@ -978,6 +998,12 @@
             if (this.chatFormContainer) {
                 this.chatFormContainer.style.display = 'none';
             }
+            
+            // Mute and pause video when chat interface is shown
+            this.videoElement.muted = true;
+            this.videoElement.pause();
+            this.isMuted = true;
+            this.muteButton.innerHTML = '🔇'; // Muted icon
             
             // Create chat interface
             this.createChatInterface();
@@ -1276,6 +1302,14 @@
             this.videoContainer.style.display = 'block';
             this.expandedButtonsContainer.style.display = 'flex';
             this.muteButton.style.display = 'flex';
+            
+            // Resume video playback when returning to video interface
+            if (this.isExpanded) {
+                this.videoElement.muted = false;
+                this.videoElement.play();
+                this.isMuted = false;
+                this.muteButton.innerHTML = '🔊'; // Unmuted icon
+            }
             
             // Remove chat form if it exists
             if (this.chatFormContainer) {
