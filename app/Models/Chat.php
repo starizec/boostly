@@ -17,7 +17,7 @@ class Chat extends Model
         'title',
         'contact_id',
         'widget_id',
-        'status',
+        'status_id',
         'last_message_at',
         'note',
     ];
@@ -40,6 +40,14 @@ class Chat extends Model
     public function widget(): BelongsTo
     {
         return $this->belongsTo(Widget::class);
+    }
+
+    /**
+     * Get the status associated with the chat.
+     */
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(Status::class);
     }
 
     /**
@@ -72,7 +80,9 @@ class Chat extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereHas('status', function ($q) {
+            $q->where('name', 'active');
+        });
     }
 
     /**
@@ -80,7 +90,9 @@ class Chat extends Model
      */
     public function scopeArchived($query)
     {
-        return $query->where('status', 'archived');
+        return $query->whereHas('status', function ($q) {
+            $q->where('name', 'archived');
+        });
     }
 
     /**
