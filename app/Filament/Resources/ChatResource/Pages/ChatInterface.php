@@ -52,11 +52,9 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public ?string $editingContactName = null;
     public ?string $editingContactEmail = null;
     public ?string $editingContactPhone = null;
-    public bool $isEditingContact = false;
     
     // Note editing properties
     public ?string $editingNote = null;
-    public bool $isEditingNote = false;
 
     public function mount(): void
     {
@@ -68,6 +66,12 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         // Initialize editingNote with current note value if chat is selected
         if ($this->selectedChat) {
             $this->editingNote = $this->selectedChat->note ?? '';
+            // Initialize contact fields
+            if ($this->selectedChat->contact) {
+                $this->editingContactName = $this->selectedChat->contact->name ?? '';
+                $this->editingContactEmail = $this->selectedChat->contact->email ?? '';
+                $this->editingContactPhone = $this->selectedChat->contact->phone ?? '';
+            }
         }
     }
 
@@ -115,51 +119,11 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         }
     }
 
-    public function startEditingContact(): void
-    {
-        if (!$this->selectedChat || !$this->selectedChat->contact) {
-            Notification::make()
-                ->title('Error')
-                ->body('No contact information available for this chat')
-                ->danger()
-                ->send();
-            return;
-        }
 
-        // Check if user has permission to edit contacts
-        if (!auth()->user()->hasAnyRole(['admin', 'agent', 'manager'])) {
-            Notification::make()
-                ->title('Permission Denied')
-                ->body('You do not have permission to edit contact information')
-                ->danger()
-                ->send();
-            return;
-        }
 
-        $this->editingContactName = $this->selectedChat->contact->name;
-        $this->editingContactEmail = $this->selectedChat->contact->email;
-        $this->editingContactPhone = $this->selectedChat->contact->phone;
-        $this->isEditingContact = true;
-    }
 
-    public function cancelEditingContact(): void
-    {
-        $this->isEditingContact = false;
-        $this->editingContactName = null;
-        $this->editingContactEmail = null;
-        $this->editingContactPhone = null;
-    }
 
-    public function hasContactChanges(): bool
-    {
-        if (!$this->selectedChat || !$this->selectedChat->contact) {
-            return false;
-        }
 
-        return $this->editingContactName !== $this->selectedChat->contact->name ||
-               $this->editingContactEmail !== $this->selectedChat->contact->email ||
-               $this->editingContactPhone !== $this->selectedChat->contact->phone;
-    }
 
     private function formatPhoneNumber(?string $phone): ?string
     {
@@ -292,10 +256,10 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
                 $query->with('agent')->orderBy('created_at', 'asc');
             }, 'status']);
 
-            $this->isEditingContact = false;
-            $this->editingContactName = null;
-            $this->editingContactEmail = null;
-            $this->editingContactPhone = null;
+            // Keep the contact fields populated with the saved values instead of resetting them
+            $this->editingContactName = $this->selectedChat->contact->name ?? '';
+            $this->editingContactEmail = $this->selectedChat->contact->email ?? '';
+            $this->editingContactPhone = $this->selectedChat->contact->phone ?? '';
 
             Notification::make()
                 ->title('Contact information updated successfully')
@@ -310,21 +274,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         }
     }
 
-    public function startEditingNote(): void
-    {
-        if (!$this->selectedChat) {
-            return;
-        }
 
-        $this->editingNote = $this->selectedChat->note ?? '';
-        $this->isEditingNote = true;
-    }
-
-    public function cancelEditingNote(): void
-    {
-        $this->isEditingNote = false;
-        $this->editingNote = null;
-    }
 
     public function saveNoteChanges(): void
     {
@@ -377,15 +327,8 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     {
         $this->isLoading = true;
         
-        // Reset contact editing state if selecting a different chat
+        // Reset note editing state if selecting a different chat
         if ($this->selectedChat && $this->selectedChat->id !== $chat->id) {
-            $this->isEditingContact = false;
-            $this->editingContactName = null;
-            $this->editingContactEmail = null;
-            $this->editingContactPhone = null;
-            
-            // Reset note editing state
-            $this->isEditingNote = false;
             $this->editingNote = null;
         }
         
@@ -395,6 +338,13 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
 
         // Initialize editingNote with current note value
         $this->editingNote = $this->selectedChat->note ?? '';
+        
+        // Initialize contact fields
+        if ($this->selectedChat->contact) {
+            $this->editingContactName = $this->selectedChat->contact->name ?? '';
+            $this->editingContactEmail = $this->selectedChat->contact->email ?? '';
+            $this->editingContactPhone = $this->selectedChat->contact->phone ?? '';
+        }
 
         // Mark unread messages as read
         $this->selectedChat->messages()
