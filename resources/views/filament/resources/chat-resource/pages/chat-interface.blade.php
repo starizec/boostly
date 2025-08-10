@@ -82,25 +82,6 @@
                 @if ($selectedChat)
                     <div class="space-y-4">
                         <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">Contact Information</h4>
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-900"><strong>Name:</strong> {{ $selectedChat->contact->name ?? 'Unknown' }}</p>
-                                <p class="text-sm text-gray-600"><strong>Email:</strong> {{ $selectedChat->contact->email ?? 'Not provided' }}</p>
-                                <p class="text-sm text-gray-600"><strong>Phone:</strong> {{ $selectedChat->contact->phone ?? 'Not provided' }}</p>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">Chat Information</h4>
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-900"><strong>Status:</strong> {{ ucfirst($selectedChat->status?->name ?? 'Unknown') }}</p>
-                                <p class="text-sm text-gray-600"><strong>Created:</strong> {{ $selectedChat->created_at->format('M j, Y') }}</p>
-                                <p class="text-sm text-gray-600"><strong>Last Message:</strong> {{ $selectedChat->last_message_at ? $selectedChat->last_message_at->format('M j, Y g:i A') : 'Never' }}</p>
-                                <p class="text-sm text-gray-600"><strong>Unread:</strong> {{ $selectedChat->unread_count }} messages</p>
-                            </div>
-                        </div>
-                        
-                        <div>
                             <h4 class="text-sm font-medium text-gray-700 mb-2">Change Status</h4>
                             <div class="bg-gray-50 p-3 rounded-lg">
                                 <select wire:change="updateChatStatus($event.target.value)" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
@@ -111,6 +92,118 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">
+                                Contact Information
+                                @if($isEditingContact)
+                                    <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Editing
+                                    </span>
+                                @endif
+                            </h4>
+                            <div class="bg-gray-50 p-3 rounded-lg transition-all duration-200 {{ $isEditingContact ? 'ring-2 ring-yellow-300 bg-yellow-50' : '' }}">
+                                @if($isEditingContact)
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
+                                            <div class="relative">
+                                                <input type="text" wire:model="editingContactName" 
+                                                    x-data="{}" 
+                                                    x-on:keydown.enter.prevent="$wire.saveContactChanges()"
+                                                    x-on:keydown.escape.prevent="$wire.cancelEditingContact()"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                    placeholder="Enter contact name"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="saveContactChanges">
+                                                <div wire:loading wire:target="saveContactChanges" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Email <span class="text-gray-400">(optional)</span></label>
+                                            <div class="relative">
+                                                <input type="email" wire:model="editingContactEmail" 
+                                                    x-data="{}" 
+                                                    x-on:keydown.enter.prevent="$wire.saveContactChanges()"
+                                                    x-on:keydown.escape.prevent="$wire.cancelEditingContact()"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                    placeholder="Enter email address"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="saveContactChanges">
+                                                <div wire:loading wire:target="saveContactChanges" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Phone <span class="text-gray-400">(optional)</span></label>
+                                            <div class="relative">
+                                                <input type="text" wire:model="editingContactPhone" 
+                                                    x-data="{}" 
+                                                    x-on:keydown.enter.prevent="$wire.saveContactChanges()"
+                                                    x-on:keydown.escape.prevent="$wire.cancelEditingContact()"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                    placeholder="Enter phone number"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="saveContactChanges">
+                                                <div wire:loading wire:target="saveContactChanges" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2 pt-2">
+                                            <button wire:click="saveContactChanges" 
+                                                wire:loading.attr="disabled"
+                                                wire:target="saveContactChanges"
+                                                class="px-3 py-1 bg-primary-600 text-white text-xs rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <span wire:loading.remove wire:target="saveContactChanges">Save</span>
+                                                <span wire:loading wire:target="saveContactChanges">Saving...</span>
+                                            </button>
+                                            <button wire:click="cancelEditingContact" 
+                                                wire:loading.attr="disabled"
+                                                wire:target="cancelEditingContact"
+                                                class="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2">
+                                            💡 Press <kbd class="px-1 py-0.5 bg-gray-200 rounded text-xs">Enter</kbd> to save, <kbd class="px-1 py-0.5 bg-gray-200 rounded text-xs">Escape</kbd> to cancel
+                                        </p>
+                                        @if($this->hasContactChanges())
+                                            <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                                                <p class="text-xs text-yellow-800">
+                                                    ⚠️ You have unsaved changes. Make sure to save before switching chats.
+                                                </p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="space-y-2">
+                                        <p class="text-sm text-gray-900"><strong>Name:</strong> {{ $selectedChat->contact->name ?? 'Unknown' }}</p>
+                                        <p class="text-sm text-gray-600"><strong>Email:</strong> {{ $selectedChat->contact->email ?? 'Not provided' }}</p>
+                                        <p class="text-sm text-gray-600"><strong>Phone:</strong> {{ $selectedChat->contact->phone ?? 'Not provided' }}</p>
+                                        <button wire:click="startEditingContact" 
+                                            wire:loading.attr="disabled"
+                                            wire:target="startEditingContact"
+                                            class="mt-3 py-1 bg-primary-600 text-white text-xs rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Edit Contact
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Chat Information</h4>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-900"><strong>Status:</strong> {{ ucfirst($selectedChat->status?->name ?? 'Unknown') }}</p>
+                                <p class="text-sm text-gray-600"><strong>Created:</strong> {{ $selectedChat->created_at->format('M j, Y') }}</p>
+                                <p class="text-sm text-gray-600"><strong>Last Message:</strong> {{ $selectedChat->last_message_at ? $selectedChat->last_message_at->format('M j, Y g:i A') : 'Never' }}</p>
+                                <p class="text-sm text-gray-600"><strong>Unread:</strong> {{ $selectedChat->unread_count }} messages</p>
                             </div>
                         </div>
                     </div>

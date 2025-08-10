@@ -46,6 +46,12 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public ?string $searchQuery = '';
     public ?string $statusFilter = '';
     public bool $isLoading = false;
+    
+    // Contact editing properties
+    public ?string $editingContactName = null;
+    public ?string $editingContactEmail = null;
+    public ?string $editingContactPhone = null;
+    public bool $isEditingContact = false;
 
     public function mount(): void
     {
@@ -99,6 +105,201 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         }
     }
 
+    public function startEditingContact(): void
+    {
+        if (!$this->selectedChat || !$this->selectedChat->contact) {
+            Notification::make()
+                ->title('Error')
+                ->body('No contact information available for this chat')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Check if user has permission to edit contacts
+        if (!auth()->user()->hasAnyRole(['admin', 'agent', 'manager'])) {
+            Notification::make()
+                ->title('Permission Denied')
+                ->body('You do not have permission to edit contact information')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $this->editingContactName = $this->selectedChat->contact->name;
+        $this->editingContactEmail = $this->selectedChat->contact->email;
+        $this->editingContactPhone = $this->selectedChat->contact->phone;
+        $this->isEditingContact = true;
+    }
+
+    public function cancelEditingContact(): void
+    {
+        $this->isEditingContact = false;
+        $this->editingContactName = null;
+        $this->editingContactEmail = null;
+        $this->editingContactPhone = null;
+    }
+
+    public function hasContactChanges(): bool
+    {
+        if (!$this->selectedChat || !$this->selectedChat->contact) {
+            return false;
+        }
+
+        return $this->editingContactName !== $this->selectedChat->contact->name ||
+               $this->editingContactEmail !== $this->selectedChat->contact->email ||
+               $this->editingContactPhone !== $this->selectedChat->contact->phone;
+    }
+
+    private function formatPhoneNumber(?string $phone): ?string
+    {
+        if (empty($phone)) {
+            return null;
+        }
+
+        // Remove all non-digit characters except +, (, ), -, and spaces
+        $cleaned = preg_replace('/[^\d\s\-\+\(\)]/', '', $phone);
+        
+        // Trim whitespace
+        $cleaned = trim($cleaned);
+        
+        return empty($cleaned) ? null : $cleaned;
+    }
+
+    private function validateEmailDomain(?string $email): bool
+    {
+        if (empty($email)) {
+            return true; // Empty email is valid (optional field)
+        }
+
+        $domain = substr(strrchr($email, '@'), 1);
+        if (!$domain) {
+            return false; // No @ symbol
+        }
+
+        // Check if domain has a valid TLD
+        return filter_var($domain, FILTER_VALIDATE_DOMAIN) !== false;
+    }
+
+    public function saveContactChanges(): void
+    {
+        if (!$this->selectedChat || !$this->selectedChat->contact) {
+            return;
+        }
+
+        // Check if user has permission to edit contacts
+        if (!auth()->user()->hasAnyRole(['admin', 'agent', 'manager'])) {
+            Notification::make()
+                ->title('Permission Denied')
+                ->body('You do not have permission to edit contact information')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Basic validation
+        if (empty(trim($this->editingContactName))) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Contact name is required')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (strlen(trim($this->editingContactName)) > 255) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Contact name is too long (maximum 255 characters)')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (!empty($this->editingContactEmail) && !filter_var($this->editingContactEmail, FILTER_VALIDATE_EMAIL)) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Please enter a valid email address')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (!empty($this->editingContactEmail) && !$this->validateEmailDomain($this->editingContactEmail)) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Please enter a valid email address with a valid domain')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (!empty($this->editingContactEmail) && strlen(trim($this->editingContactEmail)) > 255) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Email address is too long (maximum 255 characters)')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (!empty($this->editingContactPhone) && !preg_match('/^[\d\s\-\+\(\)\.]+$/', $this->editingContactPhone)) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Phone number contains invalid characters')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (!empty($this->editingContactPhone) && strlen(trim($this->editingContactPhone)) > 20) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Phone number is too long (maximum 20 characters)')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        if (empty(trim($this->editingContactEmail)) && empty(trim($this->editingContactPhone))) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Please provide either an email address or phone number')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        try {
+            $this->selectedChat->contact->update([
+                'name' => trim($this->editingContactName),
+                'email' => !empty(trim($this->editingContactEmail)) ? trim($this->editingContactEmail) : null,
+                'phone' => $this->formatPhoneNumber($this->editingContactPhone),
+            ]);
+
+            // Refresh the selected chat
+            $this->selectedChat = $this->selectedChat->fresh(['contact', 'messages' => function ($query) {
+                $query->with('agent')->orderBy('created_at', 'asc');
+            }, 'status']);
+
+            $this->isEditingContact = false;
+            $this->editingContactName = null;
+            $this->editingContactEmail = null;
+            $this->editingContactPhone = null;
+
+            Notification::make()
+                ->title('Contact information updated successfully')
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Failed to update contact information')
+                ->body('Error: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     public function toggleChatStatus(): void
     {
         if (!$this->selectedChat) {
@@ -117,6 +318,14 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public function selectChat(Chat $chat): void
     {
         $this->isLoading = true;
+        
+        // Reset contact editing state if selecting a different chat
+        if ($this->selectedChat && $this->selectedChat->id !== $chat->id) {
+            $this->isEditingContact = false;
+            $this->editingContactName = null;
+            $this->editingContactEmail = null;
+            $this->editingContactPhone = null;
+        }
         
         $this->selectedChat = $chat->load(['contact', 'messages' => function ($query) {
             $query->with('agent')->orderBy('created_at', 'asc');
