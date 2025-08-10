@@ -8,8 +8,12 @@
                     <div class="divide-y divide-gray-200">
                         @foreach ($this->getFilteredChats() as $chat)
                             <div wire:click="selectChat({{ $chat->id }})"
-                                class="p-4 hover:bg-gray-100 cursor-pointer transition-all duration-200 "
-                                style="{{ $chat->unread_count > 0 && (!$selectedChat || $selectedChat->id !== $chat->id) ? 'background-color: #dcfce7 !important; border-right: 4px solid #22c55e !important;' : '' }}">
+                                class="relative p-4 hover:bg-gray-100 cursor-pointer transition-all duration-200
+                                    {{ $selectedChat && $selectedChat->id === $chat->id ? 'bg-white' : '' }}"
+                                style="{{ $chat->unread_count > 0 && (!$selectedChat || $selectedChat->id !== $chat->id)
+                                    ? 'background-color: #dcfce7 !important; border-right: 4px solid #22c55e !important;'
+                                    : '' }}">
+                                <!-- Normalni sadržaj chata -->
                                 <div class="flex items-start space-x-3">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center justify-between">
@@ -69,32 +73,80 @@
             </div>
         </div>
 
-        <!-- Right Side - Chat Feed -->
-        <div class="flex-1 flex flex-col bg-white min-w-0 h-full  border border-gray-200 min-h-0">
-            @if ($isLoading)
-                <!-- Loading State -->
-                <div class="flex items-center justify-center h-full">
-                    <div class="text-center">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                        <h3 class="mt-4 text-sm font-medium text-gray-900">Loading chat...</h3>
-                        <p class="mt-1 text-sm text-gray-500">Please wait while we load the messages.</p>
+        <!-- Middle Column -->
+        <div class="border-t border-b border-gray-200 flex flex-col flex-shrink-0 min-h-0" style="width: 300px">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Chat Details</h3>
+            </div>
+            <div class="flex-1 overflow-y-auto overflow-x-hidden p-4">
+                @if ($selectedChat)
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Contact Information</h4>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-900"><strong>Name:</strong> {{ $selectedChat->contact->name ?? 'Unknown' }}</p>
+                                <p class="text-sm text-gray-600"><strong>Email:</strong> {{ $selectedChat->contact->email ?? 'Not provided' }}</p>
+                                <p class="text-sm text-gray-600"><strong>Phone:</strong> {{ $selectedChat->contact->phone ?? 'Not provided' }}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Chat Information</h4>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-900"><strong>Status:</strong> {{ ucfirst($selectedChat->status) }}</p>
+                                <p class="text-sm text-gray-600"><strong>Created:</strong> {{ $selectedChat->created_at->format('M j, Y') }}</p>
+                                <p class="text-sm text-gray-600"><strong>Last Message:</strong> {{ $selectedChat->last_message_at ? $selectedChat->last_message_at->format('M j, Y g:i A') : 'Never' }}</p>
+                                <p class="text-sm text-gray-600"><strong>Unread:</strong> {{ $selectedChat->unread_count }} messages</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            @elseif ($selectedChat)
+                @else
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <div class="mx-auto h-12 w-12 text-gray-400">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No chat selected</h3>
+                            <p class="mt-1 text-sm text-gray-500">Select a chat to view details.</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Right Side - Chat Feed -->
+        <div class="relative flex-1 flex flex-col bg-white min-w-0 h-full border border-gray-200 min-h-0">
+            {{-- FULL OVERLAY dok traje selectChat --}}
+            <div wire:loading wire:target="selectChat"
+                class="absolute inset-0 z-20 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-transparent"></div>
+            </div>
+
+            @if ($selectedChat)
                 <!-- Messages -->
                 <div class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4" id="messages-container">
                     @if ($selectedChat->messages->count() > 0)
                         @foreach ($selectedChat->messages as $message)
                             <div class="flex {{ $message->type === 'agent' ? 'justify-end' : 'justify-start' }}">
-                                <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg" style="{{ $message->type === 'agent' ? 'background-color: #6b7280 !important; color: white !important;' : 'background-color: #bfdbfe !important; color: #111827 !important;' }}">
+                                <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg"
+                                    style="{{ $message->type === 'agent'
+                                        ? 'background-color: #6b7280 !important; color: white !important;'
+                                        : 'background-color: #bfdbfe !important; color: #111827 !important;' }}">
                                     @if ($message->type === 'agent' && $message->agent)
-                                        <p class="text-xs {{ $message->type === 'agent' ? 'text-gray-100' : 'text-gray-600' }} mb-1 font-medium">
+                                        <p
+                                            class="text-xs {{ $message->type === 'agent' ? 'text-gray-100' : 'text-gray-600' }} mb-1 font-medium">
                                             {{ $message->agent->name }}
                                         </p>
                                     @endif
-                                    <p class="text-sm {{ $message->type === 'agent' ? 'text-white' : 'text-gray-900' }}">
-                                        {{ $message->message }}</p>
-                                    <p class="text-xs {{ $message->type === 'agent' ? 'text-gray-100' : 'text-gray-600' }} mt-1">
+                                    <p
+                                        class="text-sm {{ $message->type === 'agent' ? 'text-white' : 'text-gray-900' }}">
+                                        {{ $message->message }}
+                                    </p>
+                                    <p
+                                        class="text-xs {{ $message->type === 'agent' ? 'text-gray-100' : 'text-gray-600' }} mt-1">
                                         {{ $message->created_at->format('M j, Y g:i A') }}
                                     </p>
                                 </div>
@@ -150,7 +202,7 @@
     </div>
 
     <script>
-        // Auto-scroll to bottom of messages when new messages are added
+        // Auto-scroll na dno poruka kad se mijenja sadržaj
         document.addEventListener('livewire:updated', function() {
             const messagesContainer = document.getElementById('messages-container');
             if (messagesContainer) {
@@ -158,7 +210,7 @@
             }
         });
 
-        // Auto-scroll on initial load
+        // Auto-scroll pri inicijalnom učitavanju
         document.addEventListener('DOMContentLoaded', function() {
             const messagesContainer = document.getElementById('messages-container');
             if (messagesContainer) {
