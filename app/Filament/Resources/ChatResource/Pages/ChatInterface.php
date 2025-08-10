@@ -64,6 +64,11 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         $this->selectedChat = Chat::with(['contact', 'messages' => function ($query) {
             $query->with('agent')->orderBy('created_at', 'asc');
         }, 'status', 'tags'])->active()->latest('last_message_at')->first();
+        
+        // Initialize editingNote with current note value if chat is selected
+        if ($this->selectedChat) {
+            $this->editingNote = $this->selectedChat->note ?? '';
+        }
     }
 
     public function refreshChats(): void
@@ -337,8 +342,8 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
                 $query->with('agent')->orderBy('created_at', 'asc');
             }, 'status', 'tags']);
 
-            $this->isEditingNote = false;
-            $this->editingNote = null;
+            // Keep the editingNote populated with the saved value instead of resetting it
+            $this->editingNote = $this->selectedChat->note ?? '';
 
             Notification::make()
                 ->title('Note updated successfully')
@@ -387,6 +392,9 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         $this->selectedChat = $chat->load(['contact', 'messages' => function ($query) {
             $query->with('agent')->orderBy('created_at', 'asc');
         }, 'status', 'tags']);
+
+        // Initialize editingNote with current note value
+        $this->editingNote = $this->selectedChat->note ?? '';
 
         // Mark unread messages as read
         $this->selectedChat->messages()

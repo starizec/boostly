@@ -164,72 +164,6 @@
                         
                         <div>
                             <h4 class="text-sm font-medium text-gray-700 mb-2">
-                                Note
-                                @if($isEditingNote)
-                                    <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        Editing
-                                    </span>
-                                @endif
-                            </h4>
-                            <div class="bg-gray-50 p-3 rounded-lg transition-all duration-200 {{ $isEditingNote ? 'ring-2 ring-yellow-300 bg-yellow-50' : '' }}">
-                                @if($isEditingNote)
-                                    <div class="space-y-3">
-                                        <div>
-                                            <label class="block text-xs font-medium text-gray-700 mb-1">Note</label>
-                                            <div class="relative">
-                                                <textarea wire:model="editingNote" 
-                                                    x-data="{}" 
-                                                    x-on:keydown.enter.prevent="$wire.saveNoteChanges()"
-                                                    x-on:keydown.escape.prevent="$wire.cancelEditingNote()"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                                    placeholder="Enter note about this chat..."
-                                                    rows="3"
-                                                    wire:loading.attr="disabled"
-                                                    wire:target="saveNoteChanges"></textarea>
-                                                <div wire:loading wire:target="saveNoteChanges" class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex space-x-2 pt-2">
-                                            <button wire:click="saveNoteChanges" 
-                                                wire:loading.attr="disabled"
-                                                wire:target="saveNoteChanges"
-                                                class="px-3 py-1 bg-primary-600 text-white text-xs rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                                <span wire:loading.remove wire:target="saveNoteChanges">Save</span>
-                                                <span wire:loading wire:target="saveNoteChanges">Saving...</span>
-                                            </button>
-                                            <button wire:click="cancelEditingNote" 
-                                                wire:loading.attr="disabled"
-                                                wire:target="cancelEditingNote"
-                                                class="px-3 py-1 bg-gray-600 text-white text-xs rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                                Cancel
-                                            </button>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-2">
-                                            💡 Press <kbd class="px-1 py-0.5 bg-gray-200 rounded text-xs">Enter</kbd> to save, <kbd class="px-1 py-0.5 bg-gray-200 rounded text-xs">Escape</kbd> to cancel
-                                        </p>
-                                    </div>
-                                @else
-                                    <div class="space-y-2">
-                                        @if($selectedChat->note)
-                                            <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ $selectedChat->note }}</p>
-                                        @else
-                                            <p class="text-sm text-gray-500 italic">No note added yet</p>
-                                        @endif
-                                        <button wire:click="startEditingNote" 
-                                            wire:loading.attr="disabled"
-                                            wire:target="startEditingNote"
-                                            class="py-1 bg-primary-600 text-white text-xs rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                            {{ $selectedChat->note ? 'Edit Note' : 'Add Note' }}
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">
                                 Contact Information
                                 @if($isEditingContact)
                                     <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -327,6 +261,31 @@
                                         </button>
                                     </div>
                                 @endif
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Note</h4>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <div class="space-y-3">
+                                    
+                                        <div class="relative">
+                                            <textarea wire:model="editingNote" 
+                                                x-data="{}" 
+                                                x-on:keydown.enter.prevent="$wire.saveNoteChanges()"
+                                                x-on:blur="$wire.saveNoteChanges()"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                placeholder="Enter note about this chat..."
+                                                rows="3"
+                                                wire:loading.attr="disabled"
+                                                wire:target="saveNoteChanges"></textarea>
+                                            <div wire:loading wire:target="saveNoteChanges" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"></div>
+                                            </div>
+                                        </div>
+                                   
+
+                                </div>
                             </div>
                         </div>
                         
