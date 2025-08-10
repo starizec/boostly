@@ -19,6 +19,7 @@ class Chat extends Model
         'widget_id',
         'status',
         'last_message_at',
+        'note',
     ];
 
     protected $casts = [
