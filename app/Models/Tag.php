@@ -25,7 +25,6 @@ class Tag extends Model
         'description',
         'company_id',
         'user_id',
-        'default',
     ];
 
     /**
