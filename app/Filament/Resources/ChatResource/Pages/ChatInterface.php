@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use App\Models\Chat;
 use App\Models\ChatMessage;
+use App\Models\Status;
 use App\Events\MessageSent;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -51,7 +52,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         // Select the first active chat by default
         $this->selectedChat = Chat::with(['contact', 'messages' => function ($query) {
             $query->with('agent')->orderBy('created_at', 'asc');
-        }])->active()->latest('last_message_at')->first();
+        }, 'status'])->active()->latest('last_message_at')->first();
     }
 
     public function refreshChats(): void
@@ -60,7 +61,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         if ($this->selectedChat) {
             $this->selectedChat = $this->selectedChat->fresh(['contact', 'messages' => function ($query) {
                 $query->with('agent')->orderBy('created_at', 'asc');
-            }]);
+            }, 'status']);
         }
     }
 
@@ -68,6 +69,33 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     {
         if ($key === 'Enter' && !empty(trim($this->message))) {
             $this->sendMessage();
+        }
+    }
+
+    public function updateChatStatus($statusId): void
+    {
+        if (!$this->selectedChat) {
+            return;
+        }
+
+        try {
+            $this->selectedChat->update(['status_id' => $statusId]);
+            
+            // Refresh the selected chat
+            $this->selectedChat = $this->selectedChat->fresh(['contact', 'messages' => function ($query) {
+                $query->with('agent')->orderBy('created_at', 'asc');
+            }, 'status']);
+
+            Notification::make()
+                ->title('Chat status updated successfully')
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Failed to update chat status')
+                ->body('Error: ' . $e->getMessage())
+                ->danger()
+                ->send();
         }
     }
 
@@ -92,7 +120,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         
         $this->selectedChat = $chat->load(['contact', 'messages' => function ($query) {
             $query->with('agent')->orderBy('created_at', 'asc');
-        }]);
+        }, 'status']);
 
         // Mark unread messages as read
         $this->selectedChat->messages()
@@ -126,7 +154,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
             // Refresh the selected chat with new messages
             $this->selectedChat = $this->selectedChat->fresh(['contact', 'messages' => function ($query) {
                 $query->with('agent')->orderBy('created_at', 'asc');
-            }]);
+            }, 'status']);
 
             // Broadcast the message event
             broadcast(new MessageSent($message))->toOthers();
@@ -212,7 +240,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public function getFilteredChats()
     {
         return Chat::query()
-            ->with(['contact', 'latestMessage'])
+            ->with(['contact', 'latestMessage', 'status'])
             ->withCount(['messages as unread_count' => function (Builder $query) {
                 $query->where('type', '!=', 'agent')->where('is_read', false);
             }])
@@ -229,6 +257,15 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
             })
             ->latest('last_message_at')
             ->get();
+    }
+
+    public function getAvailableStatuses()
+    {
+        return Status::query()
+            ->where('user_id', auth()->id())
+            ->orWhere('company_id', auth()->user()->company_id)
+            ->pluck('name', 'id')
+            ->toArray();
     }
 
     protected function getHeaderActions(): array
