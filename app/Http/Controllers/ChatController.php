@@ -147,8 +147,6 @@ class ChatController extends Controller
             'message' => 'required|string|min:1',
         ]);
 
-       
-
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
@@ -168,6 +166,7 @@ class ChatController extends Controller
                 'status' => 'active',
                 'last_message_at' => now(),
                 'title' => 'Chat with ' . $request->name,
+                'started_url' => $request->client_url,
             ]);
 
             // Create first message

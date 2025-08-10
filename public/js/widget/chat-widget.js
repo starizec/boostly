@@ -1088,7 +1088,8 @@
                     email: email,
                     message: message,
                     client_domain: this.clientDomain,
-                    bw_id: this.widgetId
+                    bw_id: this.widgetId,
+                    client_url: this.clientUrl
                 })
             })
             .then(response => response.json())

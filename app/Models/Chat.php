@@ -20,6 +20,7 @@ class Chat extends Model
         'status_id',
         'last_message_at',
         'note',
+        'started_url',
     ];
 
     protected $casts = [
