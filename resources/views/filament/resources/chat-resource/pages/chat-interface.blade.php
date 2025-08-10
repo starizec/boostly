@@ -30,9 +30,6 @@
                                                 {{ $chat->last_message_at ? $chat->last_message_at->diffForHumans() : 'No messages' }}
                                             </span>
                                         </div>
-                                        <p class="text-sm text-gray-500 truncate">
-                                            {{ $chat->contact->name ?? 'No contact' }}
-                                        </p>
                                         @if ($chat->latestMessage)
                                             <p class="text-sm text-gray-600 truncate mt-1">
                                                 {{ Str::limit($chat->latestMessage->message, 50) }}
@@ -244,14 +241,57 @@
                         </div>
                         
                         <div>
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">Chat Information</h4>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Chat Information</h4>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-600"><strong>Created:</strong> {{ $selectedChat->created_at->format('M j, Y') }}</p>
+                                    <p class="text-sm text-gray-600"><strong>Last Message:</strong> {{ $selectedChat->last_message_at ? $selectedChat->last_message_at->format('M j, Y g:i A') : 'Never' }}</p>
+                                    <p class="text-sm text-gray-600"><strong>Started URL:</strong> {{ $selectedChat->started_url }}</p>
+                                </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Agents Responded</h4>
                             <div class="bg-gray-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-900"><strong>Status:</strong> {{ ucfirst($selectedChat->status?->name ?? 'Unknown') }}</p>
-                                <p class="text-sm text-gray-600"><strong>Created:</strong> {{ $selectedChat->created_at->format('M j, Y') }}</p>
-                                <p class="text-sm text-gray-600"><strong>Last Message:</strong> {{ $selectedChat->last_message_at ? $selectedChat->last_message_at->format('M j, Y g:i A') : 'Never' }}</p>
-                                <p class="text-sm text-gray-600"><strong>Unread:</strong> {{ $selectedChat->unread_count }} messages</p>
+                                @if($this->getChatAgents()->count() > 0)
+                                    <div class="space-y-2">
+                                        @foreach($this->getChatAgents() as $agent)
+                                            <div class="flex items-center space-x-3 p-2 bg-white rounded-md border border-gray-200">
+                                                <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                                                    <span class="text-white text-sm font-medium">
+                                                        {{ strtoupper(substr($agent->name, 0, 1)) }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-900 truncate">
+                                                        {{ $agent->name }}
+                                                    </p>
+                                                    @if($agent->email)
+                                                        <p class="text-xs text-gray-500 truncate">
+                                                            {{ $agent->email }}
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                                <div class="flex-shrink-0">
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        Agent
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="text-center py-4">
+                                        <div class="mx-auto h-8 w-8 text-gray-400 mb-2">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <p class="text-sm text-gray-500">No agents have responded yet</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
+                        
                     </div>
                 @else
                     <div class="flex items-center justify-center h-full">

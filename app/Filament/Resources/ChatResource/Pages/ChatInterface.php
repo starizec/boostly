@@ -513,6 +513,26 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
             ->toArray();
     }
 
+    /**
+     * Get the list of agents that responded to the selected chat
+     */
+    public function getChatAgents()
+    {
+        if (!$this->selectedChat) {
+            return collect();
+        }
+
+        return $this->selectedChat->messages()
+            ->where('type', 'agent')
+            ->whereNotNull('agent_id')
+            ->with('agent:id,name,email')
+            ->get()
+            ->pluck('agent')
+            ->unique('id')
+            ->filter()
+            ->values();
+    }
+
     public function updateChatTags($tagIds)
     {
         if (!$this->selectedChat) {
