@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 class WidgetResource extends Resource
 {
     protected static ?string $model = Widget::class;
-
+    protected static ?string $navigationGroup = 'Widget Management';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
