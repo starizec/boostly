@@ -51,6 +51,22 @@
                                                 </span>
                                             @endif
                                         </div>
+                                        
+                                        <!-- Tags Display -->
+                                        @if($chat->tags && $chat->tags->count() > 0)
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                @foreach($chat->tags->take(3) as $tag)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: {{ $tag->color ?? '#6b7280' }}">
+                                                        {{ $tag->name }}
+                                                    </span>
+                                                @endforeach
+                                                @if($chat->tags->count() > 3)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                        +{{ $chat->tags->count() - 3 }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -92,6 +108,45 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Manage Tags</h4>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <div class="space-y-3">
+                                    <!-- Tag Multi-Select -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-2">Select Tags</label>
+                                        <div class="space-y-2 max-h-32 overflow-y-auto">
+                                            @foreach($this->getAvailableTags() as $tagId => $tag)
+                                                <label class="flex items-center space-x-2 cursor-pointer">
+                                                    <input type="checkbox" 
+                                                        value="{{ $tagId }}"
+                                                        {{ $selectedChat->tags->contains($tagId) ? 'checked' : '' }}
+                                                        wire:change="updateChatTags($event.target.checked ? '{{ json_encode(array_merge($selectedChat->tags->pluck('id')->toArray(), [$tagId])) }}' : '{{ json_encode($selectedChat->tags->pluck('id')->filter(function($id) use ($tagId) { return $id != $tagId; })->toArray()) }}')"
+                                                        class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:border-primary-500">
+                                                    <span class="text-sm text-gray-700">{{ $tag['name'] }}</span>
+                                                    <div class="w-3 h-3 rounded-full" style="background-color: {{ $tag['color'] }}"></div>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Current Tags Display -->
+                                    @if($selectedChat->tags->count() > 0)
+                                        <div class="pt-2 border-t border-gray-200">
+                                            <p class="text-xs font-medium text-gray-700 mb-2">Current Tags:</p>
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach($selectedChat->tags as $tag)
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white" style="background-color: {{ $tag->color ?? '#6b7280' }}">
+                                                        {{ $tag->name }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         
