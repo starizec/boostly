@@ -83,6 +83,11 @@ class TagResource extends Resource
                             ->visible(fn () => auth()->user()->hasRole('admin'))
                             ->default(fn () => auth()->user()->hasRole('admin') ? null : auth()->user()->company_id)
                             ->disabled(fn () => !auth()->user()->hasRole('admin')),
+                        
+                        Forms\Components\Toggle::make('default')
+                            ->label('Zadana oznaka')
+                            ->helperText('Označite ako je ova oznaka zadana za novu tvrtku')
+                            ->default(false),
                     ])
                     ->columns(1),
             ]);
@@ -132,6 +137,15 @@ class TagResource extends Resource
                     ->sortable()
                     ->placeholder('Nema dodijeljene tvrtke')
                     ->visible(fn () => auth()->user()->hasRole('admin')),
+                
+                Tables\Columns\IconColumn::make('default')
+                    ->label('Zadana')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('chats_count')
                     ->label('Razgovori')
@@ -189,6 +203,12 @@ class TagResource extends Resource
                 Filter::make('no_chats')
                     ->label('Nema razgovora')
                     ->query(fn (Builder $query): Builder => $query->whereDoesntHave('chats')),
+                
+                Tables\Filters\TernaryFilter::make('default')
+                    ->label('Zadana oznaka')
+                    ->placeholder('Sve oznake')
+                    ->trueLabel('Samo zadane')
+                    ->falseLabel('Samo ne-zadane'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
