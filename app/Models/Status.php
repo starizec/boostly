@@ -14,6 +14,7 @@ class Status extends Model
         'description',
         'user_id',
         'company_id',
+        'default',
     ];
 
     protected $casts = [

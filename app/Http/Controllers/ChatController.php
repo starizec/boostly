@@ -12,6 +12,7 @@ use App\Models\WidgetStyle;
 use App\Models\Chat;
 use App\Models\ChatMessage;
 use App\Models\Contact;
+use App\Models\Status;
 use App\Events\MessageSent;
 use Illuminate\Support\Facades\Validator;
 
@@ -155,17 +156,34 @@ class ChatController extends Controller
             // Create contact
             $contact = Contact::create([
                 'name' => $request->name,
-                'email' => $request->email,
+                'email' => $request->email ?? null,
                 'phone' => $request->phone ?? null,
             ]);
+
+            // Get the widget to find the company
+            $widget = Widget::with('user')->find($request->bw_id);
+            if (!$widget) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Widget not found'
+                ], 404);
+            }
+            
+            $companyId = $widget->user->company_id;
+            
+            // Get default status for the specific company
+            $defaultStatus = Status::where('default', true)
+                ->where('company_id', $companyId)
+                ->first();
+
 
             // Create new chat
             $chat = Chat::create([
                 'contact_id' => $contact->id,
                 'widget_id' => $request->bw_id,
-                'status' => 'active',
+                'status_id' => $defaultStatus->id,
                 'last_message_at' => now(),
-                'title' => 'Chat with ' . $request->name,
+                'title' => $request->name || $request->email,
                 'started_url' => $request->client_url,
             ]);
 
