@@ -45,8 +45,6 @@ class ChatResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->maxLength(255),
                 Forms\Components\Select::make('contact_id')
                     ->relationship('contact', 'name')
                     ->required(),
@@ -68,8 +66,6 @@ class ChatResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('contact.name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')

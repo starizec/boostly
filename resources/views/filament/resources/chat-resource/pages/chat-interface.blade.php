@@ -31,7 +31,7 @@
                                             </span>
                                         </div>
                                         <p class="text-sm text-gray-500 truncate">
-                                            {{ $chat->title ?: 'No title' }}
+                                            {{ $chat->contact->name ?? 'No contact' }}
                                         </p>
                                         @if ($chat->latestMessage)
                                             <p class="text-sm text-gray-600 truncate mt-1">

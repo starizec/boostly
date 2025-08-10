@@ -183,7 +183,6 @@ class ChatController extends Controller
                 'widget_id' => $request->bw_id,
                 'status_id' => $defaultStatus->id,
                 'last_message_at' => now(),
-                'title' => $request->name || $request->email,
                 'started_url' => $request->client_url,
             ]);
 

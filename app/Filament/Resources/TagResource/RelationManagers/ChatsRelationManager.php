@@ -20,7 +20,7 @@ class ChatsRelationManager extends RelationManager
 {
     protected static string $relationship = 'chats';
 
-    protected static ?string $recordTitleAttribute = 'title';
+    protected static ?string $recordTitleAttribute = 'contact.name';
 
     protected static ?string $title = 'Razgovori';
 
@@ -28,10 +28,6 @@ class ChatsRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->label('Naslov')
-                    ->required()
-                    ->maxLength(255),
                 Forms\Components\TextInput::make('status')
                     ->label('Status')
                     ->required()
@@ -44,14 +40,8 @@ class ChatsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('title')
+            ->recordTitleAttribute('contact.name')
             ->columns([
-                TextColumn::make('title')
-                    ->label('Naslov razgovora')
-                    ->searchable()
-                    ->sortable()
-                    ->weight('bold'),
-
                 TextColumn::make('contact.name')
                     ->label('Kontakt')
                     ->searchable()

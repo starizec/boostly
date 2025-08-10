@@ -409,10 +409,9 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
                     })
                     ->when($this->searchQuery, function (Builder $query, string $search) {
                         $query->where(function (Builder $query) use ($search) {
-                            $query->where('title', 'like', "%{$search}%")
-                                ->orWhereHas('contact', function (Builder $query) use ($search) {
-                                    $query->where('name', 'like', "%{$search}%");
-                                });
+                            $query->orWhereHas('contact', function (Builder $query) use ($search) {
+                                $query->where('name', 'like', "%{$search}%");
+                            });
                         });
                     })
             )
@@ -421,10 +420,6 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
                     ->label('Contact')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('title')
-                    ->label('Title')
-                    ->searchable()
-                    ->limit(30),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -484,10 +479,9 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
             })
             ->when($this->searchQuery, function (Builder $query, string $search) {
                 $query->where(function (Builder $query) use ($search) {
-                    $query->where('title', 'like', "%{$search}%")
-                        ->orWhereHas('contact', function (Builder $query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%");
-                        });
+                    $query->orWhereHas('contact', function (Builder $query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%");
+                    });
                 });
             })
             ->latest('last_message_at')
