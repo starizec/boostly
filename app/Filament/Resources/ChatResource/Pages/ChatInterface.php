@@ -53,6 +53,10 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public ?string $editingContactEmail = null;
     public ?string $editingContactPhone = null;
     public bool $isEditingContact = false;
+    
+    // Note editing properties
+    public ?string $editingNote = null;
+    public bool $isEditingNote = false;
 
     public function mount(): void
     {
@@ -301,6 +305,54 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         }
     }
 
+    public function startEditingNote(): void
+    {
+        if (!$this->selectedChat) {
+            return;
+        }
+
+        $this->editingNote = $this->selectedChat->note ?? '';
+        $this->isEditingNote = true;
+    }
+
+    public function cancelEditingNote(): void
+    {
+        $this->isEditingNote = false;
+        $this->editingNote = null;
+    }
+
+    public function saveNoteChanges(): void
+    {
+        if (!$this->selectedChat) {
+            return;
+        }
+
+        try {
+            $this->selectedChat->update([
+                'note' => !empty(trim($this->editingNote)) ? trim($this->editingNote) : null,
+            ]);
+
+            // Refresh the selected chat
+            $this->selectedChat = $this->selectedChat->fresh(['contact', 'messages' => function ($query) {
+                $query->with('agent')->orderBy('created_at', 'asc');
+            }, 'status', 'tags']);
+
+            $this->isEditingNote = false;
+            $this->editingNote = null;
+
+            Notification::make()
+                ->title('Note updated successfully')
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Failed to update note')
+                ->body('Error: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     public function toggleChatStatus(): void
     {
         if (!$this->selectedChat) {
@@ -326,6 +378,10 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
             $this->editingContactName = null;
             $this->editingContactEmail = null;
             $this->editingContactPhone = null;
+            
+            // Reset note editing state
+            $this->isEditingNote = false;
+            $this->editingNote = null;
         }
         
         $this->selectedChat = $chat->load(['contact', 'messages' => function ($query) {
