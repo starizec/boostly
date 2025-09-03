@@ -15,7 +15,7 @@ use App\Models\Contact;
 use App\Models\Status;
 use App\Events\MessageSent;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Log;
 class ChatController extends Controller
 {
     public $isWidgetVisible = false;
@@ -76,11 +76,12 @@ class ChatController extends Controller
 
     public function verifyDomain(Request $request)
     {
-
+        Log::info('Request received: ' . json_encode($request->all()));
         $this->clientDomain = $request->input('client_domain');
         $this->clientUrl = $request->input('client_url');
         
         if (!$this->checkDomain()) {
+            Log::info('Domain not found: ' . $this->clientDomain);
             return response()->json([
                 'error' => 'Domain not authorized',
                 'domain' => $this->clientDomain,
@@ -110,6 +111,7 @@ class ChatController extends Controller
             }
         }
 
+        Log::info('No widget found for this domain: ' . $this->clientUrl);
         return response()->json(['allowed' => false, 'visible' => false, 'message' => 'No widget found for this domain']);
     }
 
