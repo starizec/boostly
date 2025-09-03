@@ -35,7 +35,8 @@ class Widget extends Model
         'user_id',
         'button_text',
         'start_button_text',
-        'style_id'
+        'style_id',
+        'active'
     ];
 
     protected $casts = [
@@ -54,7 +55,8 @@ class Widget extends Model
         'show_time_end' => 'datetime',
         'button_text' => 'string',
         'start_button_text' => 'string',
-        'style_id' => 'integer'
+        'style_id' => 'integer',
+        'active' => 'boolean'
     ];
 
     public function widgetAction()
