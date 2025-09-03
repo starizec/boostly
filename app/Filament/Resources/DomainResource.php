@@ -20,7 +20,7 @@ class DomainResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Postavke widgeta';
+    protected static ?string $navigationGroup = 'Postavke';
 
     public static function form(Form $form): Form
     {
@@ -30,8 +30,6 @@ class DomainResource extends Resource
                     ->required()
                     ->url()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('uid')
-                    ->required(),
                 Forms\Components\Hidden::make('user_id')
                     ->default(auth()->id()),
             ]);
@@ -44,10 +42,6 @@ class DomainResource extends Resource
                 Tables\Columns\TextColumn::make('url')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('uid')
-                    ->searchable()
-                    ->sortable()
-                    ->copyable(),
                 Tables\Columns\TextColumn::make('user.name')
                     ->sortable()
                     ->searchable(),
