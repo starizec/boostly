@@ -20,6 +20,8 @@ class DomainResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
+    protected static ?string $navigationGroup = 'Postavke widgeta';
+
     public static function form(Form $form): Form
     {
         return $form

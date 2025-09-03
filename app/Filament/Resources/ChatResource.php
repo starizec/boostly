@@ -27,7 +27,7 @@ class ChatResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static ?string $navigationGroup = 'Communication';
+    protected static ?string $navigationGroup = 'Razgovori';
 
     public static function getNavigationItems(): array
     {

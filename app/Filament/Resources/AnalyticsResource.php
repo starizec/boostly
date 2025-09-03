@@ -17,6 +17,8 @@ class AnalyticsResource extends Resource
 {
     protected static ?string $model = Analytics::class;
 
+    protected static ?string $navigationGroup = 'Analitika';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

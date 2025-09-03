@@ -19,7 +19,7 @@ class StatusResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Upravljanje razgovorima';
+    protected static ?string $navigationGroup = 'Postavke widgeta';
 
     protected static ?string $navigationLabel = 'Statusi';
 

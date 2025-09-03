@@ -20,7 +20,7 @@ class CompanyResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationGroup = 'Business Management';
+    protected static ?string $navigationGroup = 'Postavke';
 
     public static function form(Form $form): Form
     {

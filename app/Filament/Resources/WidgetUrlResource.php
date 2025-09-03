@@ -26,7 +26,7 @@ class WidgetUrlResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-link';
 
-    protected static ?string $navigationGroup = 'Widget Management';
+    protected static ?string $navigationGroup = 'Postavke widgeta';
 
     protected static ?int $navigationSort = 4;
 

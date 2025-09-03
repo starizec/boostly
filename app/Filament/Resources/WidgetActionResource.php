@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class WidgetActionResource extends Resource
 {
     protected static ?string $model = WidgetAction::class;
-    protected static ?string $navigationGroup = 'Widget Management';
+    protected static ?string $navigationGroup = 'Postavke widgeta';
     protected static ?string $navigationIcon = 'heroicon-o-cursor-arrow-rays';
 
     public static function form(Form $form): Form
