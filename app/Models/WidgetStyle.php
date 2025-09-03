@@ -43,12 +43,4 @@ class WidgetStyle extends Model
         'widget_user_buble_background_color',
         'widget_user_buble_color',
     ];
-
-    /**
-     * Get the widget that owns the style.
-     */
-    public function widget()
-    {
-        return $this->belongsTo(Widget::class);
-    }
 }

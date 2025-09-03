@@ -23,10 +23,6 @@ class WidgetStyleResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('widget_id')
-                    ->relationship('widget', 'name')
-                    ->required(),
-
                 Forms\Components\Section::make('Start Button Styles')
                     ->schema([
                         Forms\Components\TextInput::make('start_button_border_radius')
@@ -110,8 +106,8 @@ class WidgetStyleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('widget.name')
-                    ->searchable()
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
                     ->sortable(),
                 Tables\Columns\ColorColumn::make('widget_background_color_1')
                     ->label('Background Color'),
