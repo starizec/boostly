@@ -74,9 +74,9 @@ class Widget extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function style(): HasOne
+    public function style(): BelongsTo
     {
-        return $this->hasOne(WidgetStyle::class, 'widget_id');
+        return $this->belongsTo(WidgetStyle::class);
     }
 
     public function widgetUrls(): HasMany

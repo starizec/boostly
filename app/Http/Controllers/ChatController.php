@@ -48,10 +48,10 @@ class ChatController extends Controller
         }
 
         if ($widgetUrl) {
-            $widget = Widget::find($widgetUrl->widget_id);
+            $widget = Widget::with(['style', 'media'])->find($widgetUrl->widget_id);
             $widgetAction = WidgetAction::find($widget->action_id);
-            $widgetStyle = WidgetStyle::where('widget_id', $widget->id)->first();
-            $media = Media::find($widget->media_id);
+            $widgetStyle = $widget->style;
+            $media = $widget->media;
 
             $this->isWidgetVisible = $this->isWidgetVisibleToday($widget) && $this->isWidgetVisibleNow($widget);
 
@@ -353,15 +353,15 @@ class ChatController extends Controller
 
     public function showChat()
     {
-        $widget = Widget::find(1);
+        $widget = Widget::with(['style', 'media'])->find(1);
         $widgetAction = null;
         $widgetStyle = null;
         $media = null;
 
         if ($widget) {
             $widgetAction = WidgetAction::find($widget->action_id);
-            $widgetStyle = WidgetStyle::where('widget_id', $widget->id)->first();
-            $media = Media::find($widget->media_id);
+            $widgetStyle = $widget->style;
+            $media = $widget->media;
         }
 
         // Create default objects if data doesn't exist
