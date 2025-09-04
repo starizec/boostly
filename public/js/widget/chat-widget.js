@@ -376,6 +376,17 @@
         }
 
         createWidget() {
+            // Check if widget has media
+            const hasMedia = this.widget && this.widget.media && this.widget.media.url;
+            
+            if (hasMedia) {
+                this.createVideoWidget();
+            } else {
+                this.createButtonWidget();
+            }
+        }
+
+        createVideoWidget() {
             // Calculate height based on aspect ratio and initial width
             const initialHeight = this.initialWidth / this.videoAspectRatio;
 
@@ -447,6 +458,74 @@
             
             // Add hover and click event listeners
             this.addEventListeners();
+            
+            // Add to page
+            document.body.appendChild(this.widgetContainer);
+        }
+
+        createButtonWidget() {
+            // Apply widget styles from widget style object
+            const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const startButtonBorderRadius = widgetStyles.start_button_border_radius ?? 5;
+            const startButtonBackgroundColor = widgetStyles.start_button_background_color || '#007bff';
+            const startButtonTextColor = widgetStyles.start_button_text_color || '#ffffff';
+            const startButtonHoverBackgroundColor = widgetStyles.start_button_hover_background_color || '#0056b3';
+            const startButtonHoverTextColor = widgetStyles.start_button_hover_text_color || '#ffffff';
+            
+            // Get button text
+            const buttonText = this.widget && this.widget.start_button_text ? 
+                this.widget.start_button_text : '💬 Start Chat';
+            
+            // Create main widget container
+            this.widgetContainer = document.createElement('div');
+            this.widgetContainer.id = 'boostly-chat-widget';
+            
+            this.widgetContainer.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 9999;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            `;
+
+            // Create the chat button
+            this.chatButton = document.createElement('div');
+            this.chatButton.style.cssText = `
+                background: ${startButtonBackgroundColor};
+                color: ${startButtonTextColor};
+                padding: 12px 20px;
+                border-radius: ${startButtonBorderRadius}px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: bold;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: none;
+                outline: none;
+            `;
+
+            this.chatButton.innerHTML = buttonText;
+
+            // Add hover effect
+            this.chatButton.addEventListener('mouseenter', () => {
+                this.chatButton.style.background = startButtonHoverBackgroundColor;
+                this.chatButton.style.color = startButtonHoverTextColor;
+                this.chatButton.style.transform = 'translateY(-2px)';
+            });
+
+            this.chatButton.addEventListener('mouseleave', () => {
+                this.chatButton.style.background = startButtonBackgroundColor;
+                this.chatButton.style.color = startButtonTextColor;
+                this.chatButton.style.transform = 'translateY(0)';
+            });
+
+            // Add click handler - same behavior as video start chat
+            this.chatButton.addEventListener('click', () => {
+                this.showChatForm();
+            });
+
+            this.widgetContainer.appendChild(this.chatButton);
             
             // Add to page
             document.body.appendChild(this.widgetContainer);
