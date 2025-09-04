@@ -120,31 +120,42 @@
                 return;
             }
             
+            // Check if this is a button widget (no media)
+            const hasMedia = this.widget && this.widget.media && this.widget.media.url;
+            
             const widgetStyles = this.widget.style;
             console.log('Raw widget styles object:', widgetStyles);
             const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
-            const widgetBackgroundColor1 = widgetStyles.widget_background_color_1 || '#FFFFFF';
-            const widgetBackgroundColor2 = widgetStyles.widget_background_color_2 || null;
-            const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
             const widgetTextColor = widgetStyles.widget_text_color || '#000000';
-            
-            // Set background based on available options
-            let backgroundStyle = widgetBackgroundColor1;
-            if (widgetBackgroundUrl) {
-                // Check if it's an external URL (starts with http/https) or local path
-                if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
-                    backgroundStyle = `url(${widgetBackgroundUrl})`;
-                } else {
-                    backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
-                }
-            } else if (widgetBackgroundColor2) {
-                backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
-            }
             
             // Apply styles to widget container
             this.widgetContainer.style.borderRadius = `${widgetBorderRadius}px`;
-            this.widgetContainer.style.background = backgroundStyle;
             this.widgetContainer.style.color = widgetTextColor;
+            
+            // Only apply background styles for video widgets, not button widgets
+            if (hasMedia) {
+                const widgetBackgroundColor1 = widgetStyles.widget_background_color_1 || '#FFFFFF';
+                const widgetBackgroundColor2 = widgetStyles.widget_background_color_2 || null;
+                const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
+                
+                // Set background based on available options
+                let backgroundStyle = widgetBackgroundColor1;
+                if (widgetBackgroundUrl) {
+                    // Check if it's an external URL (starts with http/https) or local path
+                    if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
+                        backgroundStyle = `url(${widgetBackgroundUrl})`;
+                    } else {
+                        backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
+                    }
+                } else if (widgetBackgroundColor2) {
+                    backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
+                }
+                
+                this.widgetContainer.style.background = backgroundStyle;
+            } else {
+                // For button widgets, ensure no background is set
+                this.widgetContainer.style.background = 'transparent';
+            }
             
             // Apply border radius to video container as well
             if (this.videoContainer) {
@@ -957,6 +968,11 @@
         }
 
         showChatForm() {
+            // Hide chat button immediately when clicked (for button widgets without media)
+            if (this.chatButton) {
+                this.chatButton.style.display = 'none';
+            }
+            
             // Resize widget container to use configured dimensions for chat interface
             if (this.widgetWidth && this.widgetHeight) {
                 this.widgetContainer.style.width = `${this.widgetWidth}px`;
@@ -1247,10 +1263,11 @@
         }
 
         hideChatForm() {
-            // Restore button widget size (for button widgets without media)
+            // Restore button widget size and show chat button (for button widgets without media)
             if (!this.videoContainer && this.chatButton) {
                 this.widgetContainer.style.width = 'auto';
                 this.widgetContainer.style.height = 'auto';
+                this.chatButton.style.display = 'flex'; // Show chat button again
             }
             
             // Show video and buttons (only if they exist - for video widgets)
@@ -1697,10 +1714,11 @@
                 this.chatInterfaceContainer = null;
             }
             
-            // Restore button widget size (for button widgets without media)
+            // Restore button widget size and show chat button (for button widgets without media)
             if (!this.videoContainer && this.chatButton) {
                 this.widgetContainer.style.width = 'auto';
                 this.widgetContainer.style.height = 'auto';
+                this.chatButton.style.display = 'flex'; // Show chat button again
             }
             
             // Show video and buttons (only if they exist - for video widgets)
