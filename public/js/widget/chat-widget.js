@@ -914,62 +914,76 @@
                 overflow: hidden;
             `;
 
-            // Name field
-            const nameField = document.createElement('div');
-            nameField.innerHTML = `
-                <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Name *</label>
-                <input type="text" id="chat-name" required style="
-                    width: 100%;
-                    padding: 10px;
-                    border: none;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(10px);
-                    color: #333;
-                    box-sizing: border-box;
-                    outline: none;
-                " placeholder="Your name">
-            `;
+            // Get form field visibility settings
+            const formShowName = this.widget && this.widget.form_show_name !== undefined ? this.widget.form_show_name : true;
+            const formShowEmail = this.widget && this.widget.form_show_email !== undefined ? this.widget.form_show_email : true;
+            const formShowMessage = this.widget && this.widget.form_show_message !== undefined ? this.widget.form_show_message : true;
 
-            // Email field
-            const emailField = document.createElement('div');
-            emailField.innerHTML = `
-                <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Email *</label>
-                <input type="email" id="chat-email" required style="
-                    width: 100%;
-                    padding: 10px;
-                    border: none;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(10px);
-                    color: #333;
-                    box-sizing: border-box;
-                    outline: none;
-                " placeholder="your.email@example.com">
-            `;
+            // Name field (conditional)
+            let nameField = null;
+            if (formShowName) {
+                nameField = document.createElement('div');
+                nameField.innerHTML = `
+                    <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Name *</label>
+                    <input type="text" id="chat-name" required style="
+                        width: 100%;
+                        padding: 10px;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        background: rgba(255, 255, 255, 0.9);
+                        backdrop-filter: blur(10px);
+                        color: #333;
+                        box-sizing: border-box;
+                        outline: none;
+                    " placeholder="Your name">
+                `;
+            }
 
-            // Message field
-            const messageField = document.createElement('div');
-            messageField.innerHTML = `
-                <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Message *</label>
-                <textarea id="chat-message" required rows="3" style="
-                    width: 100%;
-                    padding: 10px;
-                    border: none;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(10px);
-                    color: #333;
-                    box-sizing: border-box;
-                    resize: vertical;
-                    font-family: inherit;
-                    outline: none;
-                    min-height: 60px;
-                " placeholder="Tell us how we can help you..."></textarea>
-            `;
+            // Email field (conditional)
+            let emailField = null;
+            if (formShowEmail) {
+                emailField = document.createElement('div');
+                emailField.innerHTML = `
+                    <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Email *</label>
+                    <input type="email" id="chat-email" required style="
+                        width: 100%;
+                        padding: 10px;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        background: rgba(255, 255, 255, 0.9);
+                        backdrop-filter: blur(10px);
+                        color: #333;
+                        box-sizing: border-box;
+                        outline: none;
+                    " placeholder="your.email@example.com">
+                `;
+            }
+
+            // Message field (conditional)
+            let messageField = null;
+            if (formShowMessage) {
+                messageField = document.createElement('div');
+                messageField.innerHTML = `
+                    <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Message *</label>
+                    <textarea id="chat-message" required rows="3" style="
+                        width: 100%;
+                        padding: 10px;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        background: rgba(255, 255, 255, 0.9);
+                        backdrop-filter: blur(10px);
+                        color: #333;
+                        box-sizing: border-box;
+                        resize: vertical;
+                        font-family: inherit;
+                        outline: none;
+                        min-height: 60px;
+                    " placeholder="Tell us how we can help you..."></textarea>
+                `;
+            }
 
             // Submit button
             const submitButton = document.createElement('button');
@@ -1037,10 +1051,10 @@
                 this.submitChatForm();
             });
 
-            // Assemble form
-            form.appendChild(nameField);
-            form.appendChild(emailField);
-            form.appendChild(messageField);
+            // Assemble form (only append fields that are enabled)
+            if (nameField) form.appendChild(nameField);
+            if (emailField) form.appendChild(emailField);
+            if (messageField) form.appendChild(messageField);
             form.appendChild(submitButton);
 
             // Assemble container
@@ -1074,12 +1088,24 @@
         }
 
         submitChatForm() {
-            const name = document.getElementById('chat-name').value;
-            const email = document.getElementById('chat-email').value;
-            const message = document.getElementById('chat-message').value;
+            // Get form field visibility settings
+            const formShowName = this.widget && this.widget.form_show_name !== undefined ? this.widget.form_show_name : true;
+            const formShowEmail = this.widget && this.widget.form_show_email !== undefined ? this.widget.form_show_email : true;
+            const formShowMessage = this.widget && this.widget.form_show_message !== undefined ? this.widget.form_show_message : true;
 
-            if (!name || !email || !message) {
-                alert('Please fill in all required fields.');
+            // Get values from enabled fields only
+            const name = formShowName ? (document.getElementById('chat-name')?.value || '') : '';
+            const email = formShowEmail ? (document.getElementById('chat-email')?.value || '') : '';
+            const message = formShowMessage ? (document.getElementById('chat-message')?.value || '') : '';
+
+            // Validate required fields
+            const missingFields = [];
+            if (formShowName && !name) missingFields.push('Name');
+            if (formShowEmail && !email) missingFields.push('Email');
+            if (formShowMessage && !message) missingFields.push('Message');
+
+            if (missingFields.length > 0) {
+                alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
                 return;
             }
 
@@ -1088,12 +1114,19 @@
             const originalText = submitButton.innerHTML;
             submitButton.innerHTML = 'Sending...';
             submitButton.disabled = true;
-            console.log(JSON.stringify({
-                name: name,
-                email: email,
-                message: message,
-                client_domain: this.clientDomain
-            }));
+            // Prepare data object with only enabled fields
+            const formData = {
+                client_domain: this.clientDomain,
+                bw_id: this.widgetId,
+                client_url: this.clientUrl
+            };
+
+            if (formShowName) formData.name = name;
+            if (formShowEmail) formData.email = email;
+            if (formShowMessage) formData.message = message;
+
+            console.log('Form data being sent:', JSON.stringify(formData));
+            
             // Make API call to Laravel backend
             fetch(`${this.host}/api/chat/start`, {
                 method: 'POST',
@@ -1101,14 +1134,7 @@
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    message: message,
-                    client_domain: this.clientDomain,
-                    bw_id: this.widgetId,
-                    client_url: this.clientUrl
-                })
+                body: JSON.stringify(formData)
             })
             .then(response => response.json())
             .then(data => {
