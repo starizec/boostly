@@ -145,7 +145,7 @@ class ChatController extends Controller
     public function startChat(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:2',
+            'name' => 'string|min:2',
             'email' => 'required|email',
             'message' => 'required|string|min:1',
         ]);
@@ -155,9 +155,15 @@ class ChatController extends Controller
         }
         
         try {
+            // Extract name from email if no name is provided
+            $name = $request->name;
+            if (empty($name) && !empty($request->email)) {
+                $name = explode('@', $request->email)[0];
+            }
+            
             // Create contact
             $contact = Contact::create([
-                'name' => $request->name,
+                'name' => $name,
                 'email' => $request->email ?? null,
                 'phone' => $request->phone ?? null,
             ]);
@@ -178,6 +184,18 @@ class ChatController extends Controller
                 ->where('company_id', $companyId)
                 ->first();
 
+            // If no default status found, get the first available status for the company
+            if (!$defaultStatus) {
+                $defaultStatus = Status::where('company_id', $companyId)->first();
+            }
+
+            // If still no status found, return error
+            if (!$defaultStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No status configuration found for this company'
+                ], 500);
+            }
 
             // Create new chat
             $chat = Chat::create([
@@ -196,8 +214,13 @@ class ChatController extends Controller
                 'is_read' => false,
             ]);
 
-            // Broadcast the message event
-            broadcast(new MessageSent($message))->toOthers();
+            // Broadcast the message event (with error handling)
+            try {
+                broadcast(new MessageSent($message))->toOthers();
+            } catch (\Exception $broadcastError) {
+                // Log the broadcast error but don't fail the chat creation
+                Log::warning('Failed to broadcast message event: ' . $broadcastError->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -240,8 +263,13 @@ class ChatController extends Controller
                 'last_message_at' => now()
             ]);
 
-            // Broadcast the message event
-            broadcast(new MessageSent($message))->toOthers();
+            // Broadcast the message event (with error handling)
+            try {
+                broadcast(new MessageSent($message))->toOthers();
+            } catch (\Exception $broadcastError) {
+                // Log the broadcast error but don't fail the message creation
+                Log::warning('Failed to broadcast message event: ' . $broadcastError->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -334,8 +362,13 @@ class ChatController extends Controller
                 'last_message_at' => now()
             ]);
 
-            // Broadcast the message event
-            broadcast(new MessageSent($message))->toOthers();
+            // Broadcast the message event (with error handling)
+            try {
+                broadcast(new MessageSent($message))->toOthers();
+            } catch (\Exception $broadcastError) {
+                // Log the broadcast error but don't fail the message creation
+                Log::warning('Failed to broadcast message event: ' . $broadcastError->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
