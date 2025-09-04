@@ -472,6 +472,14 @@
             const startButtonHoverBackgroundColor = widgetStyles.start_button_hover_background_color || '#0056b3';
             const startButtonHoverTextColor = widgetStyles.start_button_hover_text_color || '#ffffff';
             
+            // Get widget dimensions from configuration
+            const widgetWidth = widgetStyles.widget_width || '300px';
+            const widgetHeight = widgetStyles.widget_height || '500px';
+            
+            // Store the widget dimensions for chat interface
+            this.widgetWidth = parseInt(widgetWidth.replace('px', ''));
+            this.widgetHeight = parseInt(widgetHeight.replace('px', ''));
+            
             // Get button text
             const buttonText = this.widget && this.widget.start_button_text ? 
                 this.widget.start_button_text : '💬 Start Chat';
@@ -486,6 +494,8 @@
                 right: 20px;
                 z-index: 9999;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                width: auto;
+                height: auto;
             `;
 
             // Create the chat button
@@ -503,6 +513,12 @@
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 border: none;
                 outline: none;
+                min-width: 120px;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
             `;
 
             this.chatButton.innerHTML = buttonText;
@@ -624,6 +640,8 @@
         }
 
         toggleMute() {
+            if (!this.videoElement || !this.muteButton) return; // Only work if video exists
+            
             if (this.isMuted) {
                 this.videoElement.muted = false;
                 this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
@@ -714,10 +732,14 @@
             this.hoverButton.innerHTML = this.icons.collapse;
             this.hoverButton.style.transform = 'rotate(0deg)';
             
-            // Unmute video when expanded
-            this.videoElement.muted = false;
-            this.isMuted = false;
-            this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+            // Unmute video when expanded (only if video exists)
+            if (this.videoElement) {
+                this.videoElement.muted = false;
+                this.isMuted = false;
+            }
+            if (this.muteButton) {
+                this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+            }
             
             // Play sound if available
             this.playExpansionSound();
@@ -741,9 +763,11 @@
             this.hoverButton.innerHTML = this.icons.expand;
             this.hoverButton.style.transform = 'rotate(0deg)';
             
-            // Mute video when collapsed
-            this.videoElement.muted = true;
-            this.isMuted = true;
+            // Mute video when collapsed (only if video exists)
+            if (this.videoElement) {
+                this.videoElement.muted = true;
+                this.isMuted = true;
+            }
             
             // Remove expanded buttons if they exist
             if (this.expandedButtonsContainer) {
@@ -896,6 +920,12 @@
         }
 
         showChatForm() {
+            // Resize widget container to use configured dimensions for chat interface
+            if (this.widgetWidth && this.widgetHeight) {
+                this.widgetContainer.style.width = `${this.widgetWidth}px`;
+                this.widgetContainer.style.height = `${this.widgetHeight}px`;
+            }
+            
             // Check if there's a previous chat (either from localStorage or current session)
             const bcId = localStorage.getItem('bc_id');
             const hasExistingChat = (this.chatExist && this.currentChatId) || bcId;
@@ -909,15 +939,23 @@
                     this.chatExist = true;
                 }
                 
-                // Hide video and buttons
-                this.videoContainer.style.display = 'none';
-                this.expandedButtonsContainer.style.display = 'none';
+                // Hide video and buttons (only if they exist - for video widgets)
+                if (this.videoContainer) {
+                    this.videoContainer.style.display = 'none';
+                }
+                if (this.expandedButtonsContainer) {
+                    this.expandedButtonsContainer.style.display = 'none';
+                }
                 
-                // Mute and pause video when chat interface is shown
-                this.videoElement.muted = true;
-                this.videoElement.pause();
-                this.isMuted = true;
-                this.muteButton.innerHTML = this.icons.mute; // Muted icon
+                // Mute and pause video when chat interface is shown (only if video exists)
+                if (this.videoElement) {
+                    this.videoElement.muted = true;
+                    this.videoElement.pause();
+                    this.isMuted = true;
+                }
+                if (this.muteButton) {
+                    this.muteButton.innerHTML = this.icons.mute; // Muted icon
+                }
                 
                 // Create and show chat interface directly
                 this.createChatInterface();
@@ -925,15 +963,23 @@
                 // Load messages
                 this.loadMessages();
             } else {
-                // Hide video and buttons
-                this.videoContainer.style.display = 'none';
-                this.expandedButtonsContainer.style.display = 'none';
+                // Hide video and buttons (only if they exist - for video widgets)
+                if (this.videoContainer) {
+                    this.videoContainer.style.display = 'none';
+                }
+                if (this.expandedButtonsContainer) {
+                    this.expandedButtonsContainer.style.display = 'none';
+                }
                 
-                // Mute and pause video when chat form is shown
-                this.videoElement.muted = true;
-                this.videoElement.pause();
-                this.isMuted = true;
-                this.muteButton.innerHTML = this.icons.mute; // Muted icon
+                // Mute and pause video when chat form is shown (only if video exists)
+                if (this.videoElement) {
+                    this.videoElement.muted = true;
+                    this.videoElement.pause();
+                    this.isMuted = true;
+                }
+                if (this.muteButton) {
+                    this.muteButton.innerHTML = this.icons.mute; // Muted icon
+                }
                 
                 // Create and show chat form
                 this.createChatForm();
@@ -1118,7 +1164,7 @@
                 margin-top: 8px;
                 outline: none;
             `;
-            backButton.innerHTML = '← Back to Video';
+            backButton.innerHTML = '← Back';
 
             // Add hover effect to back button
             backButton.addEventListener('mouseenter', () => {
@@ -1155,16 +1201,28 @@
         }
 
         hideChatForm() {
-            // Show video and buttons
-            this.videoContainer.style.display = 'block';
-            this.expandedButtonsContainer.style.display = 'flex';
+            // Restore button widget size (for button widgets without media)
+            if (!this.videoContainer && this.chatButton) {
+                this.widgetContainer.style.width = 'auto';
+                this.widgetContainer.style.height = 'auto';
+            }
             
-            // Resume video playback when returning to video interface
-            if (this.isExpanded) {
+            // Show video and buttons (only if they exist - for video widgets)
+            if (this.videoContainer) {
+                this.videoContainer.style.display = 'block';
+            }
+            if (this.expandedButtonsContainer) {
+                this.expandedButtonsContainer.style.display = 'flex';
+            }
+            
+            // Resume video playback when returning to video interface (only if video exists)
+            if (this.isExpanded && this.videoElement) {
                 this.videoElement.muted = false;
                 this.videoElement.play();
                 this.isMuted = false;
-                this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+                if (this.muteButton) {
+                    this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+                }
             }
             
             // Remove chat form
@@ -1261,11 +1319,15 @@
                 this.chatFormContainer.style.display = 'none';
             }
             
-            // Mute and pause video when chat interface is shown
-            this.videoElement.muted = true;
-            this.videoElement.pause();
-            this.isMuted = true;
-            this.muteButton.innerHTML = '🔇'; // Muted icon
+            // Mute and pause video when chat interface is shown (only if video exists)
+            if (this.videoElement) {
+                this.videoElement.muted = true;
+                this.videoElement.pause();
+                this.isMuted = true;
+            }
+            if (this.muteButton) {
+                this.muteButton.innerHTML = '🔇'; // Muted icon
+            }
             
             // Create chat interface
             this.createChatInterface();
@@ -1580,16 +1642,28 @@
                 this.chatInterfaceContainer = null;
             }
             
-            // Show video and buttons
-            this.videoContainer.style.display = 'block';
-            this.expandedButtonsContainer.style.display = 'flex';
+            // Restore button widget size (for button widgets without media)
+            if (!this.videoContainer && this.chatButton) {
+                this.widgetContainer.style.width = 'auto';
+                this.widgetContainer.style.height = 'auto';
+            }
             
-            // Resume video playback when returning to video interface
-            if (this.isExpanded) {
+            // Show video and buttons (only if they exist - for video widgets)
+            if (this.videoContainer) {
+                this.videoContainer.style.display = 'block';
+            }
+            if (this.expandedButtonsContainer) {
+                this.expandedButtonsContainer.style.display = 'flex';
+            }
+            
+            // Resume video playback when returning to video interface (only if video exists)
+            if (this.isExpanded && this.videoElement) {
                 this.videoElement.muted = false;
                 this.videoElement.play();
                 this.isMuted = false;
-                this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+                if (this.muteButton) {
+                    this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+                }
             }
             
             // Remove chat form if it exists
