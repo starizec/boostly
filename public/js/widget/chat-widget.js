@@ -1061,6 +1061,9 @@
                 flex-direction: column;
                 box-sizing: border-box;
                 z-index: 15;
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             `;
 
             // Create form header
@@ -1235,6 +1238,12 @@
             this.chatFormContainer.appendChild(backButton);
 
             this.widgetContainer.appendChild(this.chatFormContainer);
+            
+            // Trigger entrance animation
+            setTimeout(() => {
+                this.chatFormContainer.style.opacity = '1';
+                this.chatFormContainer.style.transform = 'scale(1) translateY(0)';
+            }, 50);
         }
 
         hideChatForm() {
@@ -1421,6 +1430,9 @@
                 display: flex;
                 flex-direction: column;
                 z-index: 15;
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             `;
 
             // Create chat header
@@ -1554,6 +1566,12 @@
             }
 
             this.widgetContainer.appendChild(this.chatInterfaceContainer);
+            
+            // Trigger entrance animation
+            setTimeout(() => {
+                this.chatInterfaceContainer.style.opacity = '1';
+                this.chatInterfaceContainer.style.transform = 'scale(1) translateY(0)';
+            }, 50);
         }
 
         loadMessages() {
