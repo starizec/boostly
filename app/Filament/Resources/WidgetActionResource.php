@@ -13,18 +13,24 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+use Illuminate\Support\Facades\Auth;
 class WidgetActionResource extends Resource
 {
     protected static ?string $model = WidgetAction::class;
     protected static ?string $navigationGroup = 'Postavke widgeta';
     protected static ?string $navigationIcon = 'heroicon-o-cursor-arrow-rays';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Hidden::make('user_id')
-                    ->default(auth()->id()),
+                    ->default(Auth::id()),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
