@@ -161,7 +161,6 @@ class WidgetResource extends Resource
                         Forms\Components\Select::make('media_id')
                             ->label('Medija')
                             ->relationship('media', 'name')
-                            ->required()
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
