@@ -817,9 +817,19 @@
         }
 
         showChatForm() {
-            // Check if there's a previous chat
-            if (this.chatExist && this.currentChatId) {
+            // Check if there's a previous chat (either from localStorage or current session)
+            const bcId = localStorage.getItem('bc_id');
+            const hasExistingChat = (this.chatExist && this.currentChatId) || bcId;
+            
+            if (hasExistingChat) {
                 console.log('Previous chat exists, opening chat interface directly');
+                
+                // If we have a chat ID from localStorage but not in current session, restore it
+                if (bcId && !this.currentChatId) {
+                    this.currentChatId = bcId;
+                    this.chatExist = true;
+                }
+                
                 // Hide video and buttons
                 this.videoContainer.style.display = 'none';
                 this.expandedButtonsContainer.style.display = 'none';
