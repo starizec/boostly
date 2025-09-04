@@ -19,6 +19,24 @@
             this.currentContact = null; // Store current contact ID
             this.widgetId = null; // Store widget ID
             this.echo = null; // Echo instance for real-time communication
+            
+            // Icon definitions using Heroicons (16px size)
+            this.icons = {
+                mute: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                </svg>`,
+                unmute: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>`,
+                expand: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                </svg>`,
+                collapse: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L12 12L6 6"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L12 12L18 18"></path>
+                </svg>`
+            };
         }
 
         async init() {
@@ -493,14 +511,10 @@
                 position: absolute;
                 top: 10px;
                 left: 10px;
-                background: rgba(0, 0, 0, 0.7);
-                backdrop-filter: blur(10px);
                 padding: 8px;
-                border-radius: 50%;
                 text-align: center;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                border: 1px solid rgba(255, 255, 255, 0.2);
                 color: #fff;
                 font-size: 16px;
                 width: 32px;
@@ -513,7 +527,7 @@
                 pointer-events: none;
             `;
 
-            this.muteButton.innerHTML = '🔇'; // Muted icon
+            this.muteButton.innerHTML = this.icons.mute; // Muted icon
             this.isMuted = true;
 
             // Add click handler for mute/unmute
@@ -528,24 +542,15 @@
         toggleMute() {
             if (this.isMuted) {
                 this.videoElement.muted = false;
-                this.muteButton.innerHTML = '🔊'; // Unmuted icon
+                this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
                 this.isMuted = false;
             } else {
                 this.videoElement.muted = true;
-                this.muteButton.innerHTML = '🔇'; // Muted icon
+                this.muteButton.innerHTML = this.icons.mute; // Muted icon
                 this.isMuted = true;
             }
         }
 
-        showMuteButton() {
-            this.muteButton.style.opacity = '1';
-            this.muteButton.style.pointerEvents = 'auto';
-        }
-
-        hideMuteButton() {
-            this.muteButton.style.opacity = '0';
-            this.muteButton.style.pointerEvents = 'none';
-        }
 
         createHoverButton() {
             // Create hover button overlay
@@ -573,23 +578,27 @@
                 text-shadow: 0 2px 4px rgba(0,0,0,0.5);
             `;
 
-            this.hoverButton.innerHTML = '⤢';
+            this.hoverButton.innerHTML = this.icons.expand;
 
             this.widgetContainer.appendChild(this.hoverButton);
         }
 
         addEventListeners() {
-            // Hover events to show/hide button
+            // Hover events to show/hide buttons
             this.widgetContainer.addEventListener('mouseenter', () => {
                 this.hoverButton.style.opacity = '1';
                 this.hoverButton.style.pointerEvents = 'auto';
                 this.hoverButton.style.transform = 'scale(1.1)';
+                this.muteButton.style.opacity = '1';
+                this.muteButton.style.pointerEvents = 'auto';
             });
 
             this.widgetContainer.addEventListener('mouseleave', () => {
                 this.hoverButton.style.opacity = '0';
                 this.hoverButton.style.pointerEvents = 'none';
                 this.hoverButton.style.transform = 'scale(1)';
+                this.muteButton.style.opacity = '0';
+                this.muteButton.style.pointerEvents = 'none';
             });
 
             // Click event to expand video (only when collapsed)
@@ -618,14 +627,13 @@
             this.widgetContainer.style.height = `${expandedHeight}px`;
             
             // Change expand button to collapse button
-            this.hoverButton.innerHTML = '⤵';
+            this.hoverButton.innerHTML = this.icons.collapse;
             this.hoverButton.style.transform = 'rotate(0deg)';
             
-            // Show mute button and unmute video when expanded
-            this.showMuteButton();
+            // Unmute video when expanded
             this.videoElement.muted = false;
             this.isMuted = false;
-            this.muteButton.innerHTML = '🔊'; // Unmuted icon
+            this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
             
             // Play sound if available
             this.playExpansionSound();
@@ -646,11 +654,10 @@
             this.widgetContainer.style.height = `${collapsedHeight}px`;
             
             // Change collapse button back to expand button
-            this.hoverButton.innerHTML = '⤢';
+            this.hoverButton.innerHTML = this.icons.expand;
             this.hoverButton.style.transform = 'rotate(0deg)';
             
-            // Hide mute button and mute video when collapsed
-            this.hideMuteButton();
+            // Mute video when collapsed
             this.videoElement.muted = true;
             this.isMuted = true;
             
@@ -712,7 +719,7 @@
                 this.actionButton.style.cssText = `
                     background: ${actionBackgroundColor};
                     backdrop-filter: blur(10px);
-                    padding: 12px 16px;
+                    padding: 8px 16px;
                     border-radius: ${actionBorderRadius}px;
                     text-align: center;
                     cursor: pointer;
@@ -765,7 +772,7 @@
             this.startChatButton.style.cssText = `
                 background: ${backgroundColor};
                 backdrop-filter: blur(10px);
-                padding: 12px 16px;
+                padding: 8px 16px;
                 border-radius: ${borderRadius}px;
                 text-align: center;
                 cursor: pointer;
@@ -811,13 +818,12 @@
                 // Hide video and buttons
                 this.videoContainer.style.display = 'none';
                 this.expandedButtonsContainer.style.display = 'none';
-                this.muteButton.style.display = 'none';
                 
                 // Mute and pause video when chat interface is shown
                 this.videoElement.muted = true;
                 this.videoElement.pause();
                 this.isMuted = true;
-                this.muteButton.innerHTML = '🔇'; // Muted icon
+                this.muteButton.innerHTML = this.icons.mute; // Muted icon
                 
                 // Create and show chat interface directly
                 this.createChatInterface();
@@ -828,13 +834,12 @@
                 // Hide video and buttons
                 this.videoContainer.style.display = 'none';
                 this.expandedButtonsContainer.style.display = 'none';
-                this.muteButton.style.display = 'none';
                 
                 // Mute and pause video when chat form is shown
                 this.videoElement.muted = true;
                 this.videoElement.pause();
                 this.isMuted = true;
-                this.muteButton.innerHTML = '🔇'; // Muted icon
+                this.muteButton.innerHTML = this.icons.mute; // Muted icon
                 
                 // Create and show chat form
                 this.createChatForm();
@@ -1036,14 +1041,13 @@
             // Show video and buttons
             this.videoContainer.style.display = 'block';
             this.expandedButtonsContainer.style.display = 'flex';
-            this.muteButton.style.display = 'flex';
             
             // Resume video playback when returning to video interface
             if (this.isExpanded) {
                 this.videoElement.muted = false;
                 this.videoElement.play();
                 this.isMuted = false;
-                this.muteButton.innerHTML = '🔊'; // Unmuted icon
+                this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
             }
             
             // Remove chat form
@@ -1450,14 +1454,13 @@
             // Show video and buttons
             this.videoContainer.style.display = 'block';
             this.expandedButtonsContainer.style.display = 'flex';
-            this.muteButton.style.display = 'flex';
             
             // Resume video playback when returning to video interface
             if (this.isExpanded) {
                 this.videoElement.muted = false;
                 this.videoElement.play();
                 this.isMuted = false;
-                this.muteButton.innerHTML = '🔊'; // Unmuted icon
+                this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
             }
             
             // Remove chat form if it exists
