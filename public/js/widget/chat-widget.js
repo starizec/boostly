@@ -496,6 +496,9 @@
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 width: auto;
                 height: auto;
+                opacity: 0;
+                transform: translateY(20px) scale(0.9);
+                transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             `;
 
             // Create the chat button
@@ -545,6 +548,40 @@
             
             // Add to page
             document.body.appendChild(this.widgetContainer);
+            
+            // Add CSS animation keyframes
+            this.addButtonAnimationStyles();
+            
+            // Trigger entrance animation
+            setTimeout(() => {
+                this.widgetContainer.style.opacity = '1';
+                this.widgetContainer.style.transform = 'translateY(0) scale(1)';
+            }, 100);
+        }
+
+        addButtonAnimationStyles() {
+            // Check if animation styles already exist
+            if (document.getElementById('boostly-button-animations')) {
+                return;
+            }
+            
+            // Create style element for button animations
+            const style = document.createElement('style');
+            style.id = 'boostly-button-animations';
+            style.textContent = `
+                @keyframes buttonEntrance {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(20px) scale(0.9);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+            `;
+            
+            document.head.appendChild(style);
         }
 
         createVideoBackground() {
