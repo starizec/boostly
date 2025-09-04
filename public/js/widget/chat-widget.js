@@ -884,9 +884,10 @@
                 background-position: center;
                 background-repeat: no-repeat;
                 border-radius: ${widgetBorderRadius}px;
-                padding: 20px;
+                padding: 15px;
                 display: flex;
                 flex-direction: column;
+                box-sizing: border-box;
                 z-index: 15;
             `;
 
@@ -907,8 +908,10 @@
             form.style.cssText = `
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
                 flex: 1;
+                min-height: 0;
+                overflow: hidden;
             `;
 
             // Name field
@@ -917,7 +920,7 @@
                 <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Name *</label>
                 <input type="text" id="chat-name" required style="
                     width: 100%;
-                    padding: 12px;
+                    padding: 10px;
                     border: none;
                     border-radius: 6px;
                     font-size: 14px;
@@ -925,6 +928,7 @@
                     backdrop-filter: blur(10px);
                     color: #333;
                     box-sizing: border-box;
+                    outline: none;
                 " placeholder="Your name">
             `;
 
@@ -934,7 +938,7 @@
                 <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Email *</label>
                 <input type="email" id="chat-email" required style="
                     width: 100%;
-                    padding: 12px;
+                    padding: 10px;
                     border: none;
                     border-radius: 6px;
                     font-size: 14px;
@@ -942,6 +946,7 @@
                     backdrop-filter: blur(10px);
                     color: #333;
                     box-sizing: border-box;
+                    outline: none;
                 " placeholder="your.email@example.com">
             `;
 
@@ -949,9 +954,9 @@
             const messageField = document.createElement('div');
             messageField.innerHTML = `
                 <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Message *</label>
-                <textarea id="chat-message" required rows="4" style="
+                <textarea id="chat-message" required rows="3" style="
                     width: 100%;
-                    padding: 12px;
+                    padding: 10px;
                     border: none;
                     border-radius: 6px;
                     font-size: 14px;
@@ -961,6 +966,8 @@
                     box-sizing: border-box;
                     resize: vertical;
                     font-family: inherit;
+                    outline: none;
+                    min-height: 60px;
                 " placeholder="Tell us how we can help you..."></textarea>
             `;
 
@@ -971,13 +978,14 @@
                 background: rgba(255, 255, 255, 0.95);
                 color: #333;
                 border: none;
-                padding: 12px 20px;
+                padding: 10px 16px;
                 border-radius: 6px;
                 font-size: 14px;
                 font-weight: bold;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 margin-top: auto;
+                outline: none;
             `;
             submitButton.innerHTML = 'Send Message';
 
@@ -999,12 +1007,13 @@
                 background: rgba(255, 255, 255, 0.2);
                 color: white;
                 border: 1px solid rgba(255, 255, 255, 0.3);
-                padding: 8px 16px;
+                padding: 8px 12px;
                 border-radius: 6px;
                 font-size: 12px;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                margin-top: 10px;
+                margin-top: 8px;
+                outline: none;
             `;
             backButton.innerHTML = '← Back to Video';
 
