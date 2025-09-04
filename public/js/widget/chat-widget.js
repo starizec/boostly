@@ -9,7 +9,7 @@
             this.clientUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
             this.widget = null;
             this.videoAspectRatio = 16/9; // Default aspect ratio
-            this.initialWidth = 150; // Initial width in pixels
+            this.initialWidth = 150; // Initial width in pixels (will be updated from widget settings)
             this.isExpanded = false; // Track expansion state
             this.isMuted = true; // Track mute state
             this.isChatFormVisible = false; // Track chat form visibility
@@ -386,7 +386,12 @@
             const widgetBackgroundColor2 = widgetStyles.widget_background_color_2 || null;
             const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
             const widgetTextColor = widgetStyles.widget_text_color || '#000000';
-            const widgetWidth = widgetStyles.widget_width || '300px';
+            const widgetWidth = widgetStyles.widget_width || '350px';
+            
+            // Store the full widget width from settings
+            this.widgetWidth = parseInt(widgetWidth.replace('px', ''));
+            // Keep initial width as collapsed size (150px)
+            this.initialWidth = 150;
             
             // Debug log to verify widget styles are being applied
             console.log('Widget styles:', {
@@ -620,7 +625,7 @@
         }
 
         expandVideo() {
-            const expandedWidth = 300;
+            const expandedWidth = this.widgetWidth; // Use the full widget width from settings
             const expandedHeight = expandedWidth / this.videoAspectRatio;
             
             this.widgetContainer.style.width = `${expandedWidth}px`;
@@ -1474,7 +1479,7 @@
 
         // Method to expand widget (can be called later when needed)
         expandWidget() {
-            const expandedWidth = 350;
+            const expandedWidth = this.widgetWidth;
             const expandedHeight = expandedWidth / this.videoAspectRatio;
             
             this.widgetContainer.style.width = `${expandedWidth}px`;
