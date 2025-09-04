@@ -789,8 +789,8 @@
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             `;
 
-            const chatText = this.widget && this.widget.button_text ? 
-                this.widget.button_text : '💬 Start Chat';
+            const chatText = this.widget && this.widget.start_button_text ? 
+                this.widget.start_button_text : '💬 Start Chat';
             this.startChatButton.innerHTML = chatText;
 
             // Add hover effect with custom colors
