@@ -1089,8 +1089,12 @@
                 margin-bottom: 20px;
                 color: white;
             `;
+            // Get form title from widget data
+            const formTitle = this.widget && this.widget.form_title ? 
+                this.widget.form_title : 'Start a Conversation';
+            
             formHeader.innerHTML = `
-                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: bold;">Start a Conversation</h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: bold;">${formTitle}</h3>
                 <p style="margin: 0; font-size: 14px; opacity: 0.9;">We'd love to hear from you!</p>
             `;
 

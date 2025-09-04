@@ -82,7 +82,7 @@ class WidgetResource extends Resource
                     ]),
                 Forms\Components\Section::make('Offline forma')
                     ->schema([
-                        Forms\Components\Grid::make(4)
+                        Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\Toggle::make('form_active')
                                     ->label('Forma aktivna')
@@ -93,28 +93,55 @@ class WidgetResource extends Resource
                             ->label('Pošalji na email')
                             ->email()
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('offline_title')
+                            ->label('Naslov offline forme')
+                            ->maxLength(255),
                         Forms\Components\Textarea::make('offline_message')
                             ->label('Offline poruka')
                             ->maxLength(65535),
 
                     ]),
-                Forms\Components\Section::make('Postavke')
+                Forms\Components\Section::make('Postavke forme')
                     ->schema([
-                        Forms\Components\Grid::make(3)
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('form_title')
+                                    ->label('Naslov forme')
+                                    ->maxLength(255),
+                                Forms\Components\Textarea::make('form_message')
+                                    ->label('Poruka forme')
+                                    ->maxLength(65535),
+                            ]),
+                        Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\Toggle::make('form_show_name')
                                     ->label('Prikaži ime')
                                     ->required()
                                     ->default(true),
+                                Forms\Components\TextInput::make('form_placeholder_name')
+                                    ->label('Placeholder za ime')
+                                    ->maxLength(255),
+
                                 Forms\Components\Toggle::make('form_show_email')
                                     ->label('Prikaži email')
                                     ->required()
                                     ->default(true),
+                                Forms\Components\TextInput::make('form_placeholder_email')
+                                    ->label('Placeholder za email')
+                                    ->maxLength(255),
+
                                 Forms\Components\Toggle::make('form_show_message')
                                     ->label('Prikaži poruku')
                                     ->required()
                                     ->default(true),
+                                Forms\Components\TextInput::make('form_placeholder_message')
+                                    ->label('Placeholder za poruku')
+                                    ->maxLength(255),
                             ]),
+
+                    ]),
+                Forms\Components\Section::make('Postavke gumba')
+                    ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('button_text')
@@ -122,6 +149,15 @@ class WidgetResource extends Resource
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('start_button_text')
                                     ->label('Tekst početnog gumba')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('message_input_placeholder')
+                                    ->label('Placeholder za poruku')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('back_button_text')
+                                    ->label('Tekst gumba nazad')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('send_button_text')
+                                    ->label('Tekst gumba poslati')
                                     ->maxLength(255),
                             ]),
 
@@ -151,7 +187,7 @@ class WidgetResource extends Resource
                             ->createOptionUsing(function (array $data): int {
                                 $data['user_id'] = Auth::id();
                                 $action = \App\Models\WidgetAction::create($data);
-                                
+
                                 // Return the ID - Filament should auto-select this
                                 return $action->id;
                             }),
@@ -181,7 +217,7 @@ class WidgetResource extends Resource
                                     ->visibility('public')
                                     ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $state) {
                                         if (! $state) return;
-                                        
+
                                         if (blank($get('name'))) {
                                             $set('name', pathinfo($state->getClientOriginalName(), PATHINFO_FILENAME));
                                         }
@@ -200,7 +236,7 @@ class WidgetResource extends Resource
                         Forms\Components\Select::make('style_id')
                             ->label('Stil')
                             ->relationship('style', 'id')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "Stil #{$record->id}")
+                            ->getOptionLabelFromRecordUsing(fn($record) => "Stil #{$record->id}")
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
@@ -325,7 +361,7 @@ class WidgetResource extends Resource
                             ->addActionLabel('Dodaj URL')
                             ->defaultItems(0)
                             ->collapsible()
-                            ->itemLabel(fn (array $state): ?string => $state['url'] ?? null),
+                            ->itemLabel(fn(array $state): ?string => $state['url'] ?? null),
                     ])
                     ->collapsible(),
             ]);
@@ -405,6 +441,4 @@ class WidgetResource extends Resource
     {
         return static::getModel()::count();
     }
-
-
 }

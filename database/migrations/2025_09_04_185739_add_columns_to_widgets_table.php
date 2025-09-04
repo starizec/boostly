@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('widgets', function (Blueprint $table) {
-            $table->text('form_title')->nullable();
-            $table->text('form_message')->nullable();
-            $table->text('offline_title')->nullable();
-            $table->text('form_placeholder_name')->nullable()->default('Name');
-            $table->text('form_placeholder_email')->nullable()->default('Email');
-            $table->text('form_placeholder_message')->nullable()->default('Message');
-            $table->text('message_input_placeholder')->nullable()->default('Write your message...');
-            $table->text('back_button_text')->nullable()->default('Back');
-            $table->text('send_button_text')->nullable()->default('Send');
+            $table->string('form_title')->nullable();
+            $table->string('form_message')->nullable();
+            $table->string('offline_title')->nullable();
+            $table->string('form_placeholder_name')->nullable()->default('Name');
+            $table->string('form_placeholder_email')->nullable()->default('Email');
+            $table->string('form_placeholder_message')->nullable()->default('Message');
+            $table->string('message_input_placeholder')->nullable()->default('Write your message...');
+            $table->string('back_button_text')->nullable()->default('Back');
+            $table->string('send_button_text')->nullable()->default('Send');
         });
     }
 

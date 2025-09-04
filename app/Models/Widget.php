@@ -36,7 +36,16 @@ class Widget extends Model
         'button_text',
         'start_button_text',
         'style_id',
-        'active'
+        'active',
+        'form_title',
+        'form_message',
+        'offline_title',
+        'form_placeholder_name',
+        'form_placeholder_email',
+        'form_placeholder_message',
+        'message_input_placeholder',
+        'back_button_text',
+        'send_button_text'
     ];
 
     protected $casts = [
@@ -56,7 +65,16 @@ class Widget extends Model
         'button_text' => 'string',
         'start_button_text' => 'string',
         'style_id' => 'integer',
-        'active' => 'boolean'
+        'active' => 'boolean',
+        'form_title' => 'string',
+        'form_message' => 'string',
+        'offline_title' => 'string',
+        'form_placeholder_name' => 'string',
+        'form_placeholder_email' => 'string',
+        'form_placeholder_message' => 'string',
+        'message_input_placeholder' => 'string',
+        'back_button_text' => 'string',
+        'send_button_text' => 'string'
     ];
 
     public function widgetAction()
