@@ -131,7 +131,6 @@ class WidgetResource extends Resource
                         Forms\Components\Select::make('action_id')
                             ->label('Akcija')
                             ->relationship('widgetAction', 'name')
-                            ->required()
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
