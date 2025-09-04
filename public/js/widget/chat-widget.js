@@ -492,8 +492,8 @@
             this.widgetHeight = parseInt(widgetHeight.replace('px', ''));
             
             // Get button text
-            const buttonText = this.widget && this.widget.start_button_text ? 
-                this.widget.start_button_text : '💬 Start Chat';
+            const buttonText = this.widget && this.widget.button_text ? 
+                this.widget.button_text : '💬 Start Chat';
             
             // Create main widget container
             this.widgetContainer = document.createElement('div');
@@ -940,8 +940,8 @@
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             `;
 
-            const chatText = this.widget && this.widget.start_button_text ? 
-                this.widget.start_button_text : '💬 Start Chat';
+            const chatText = this.widget && this.widget.button_text ? 
+                this.widget.button_text : '💬 Start Chat';
             this.startChatButton.innerHTML = chatText;
 
             // Add hover effect with custom colors
@@ -1115,7 +1115,6 @@
             if (formShowName) {
                 nameField = document.createElement('div');
                 nameField.innerHTML = `
-                    <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Name *</label>
                     <input type="text" id="chat-name" required style="
                         width: 100%;
                         padding: 10px;
@@ -1136,7 +1135,6 @@
             if (formShowEmail) {
                 emailField = document.createElement('div');
                 emailField.innerHTML = `
-                    <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Email *</label>
                     <input type="email" id="chat-email" required style="
                         width: 100%;
                         padding: 10px;
@@ -1157,7 +1155,6 @@
             if (formShowMessage) {
                 messageField = document.createElement('div');
                 messageField.innerHTML = `
-                    <label style="display: block; color: white; font-size: 14px; margin-bottom: 5px; font-weight: 500;">Message *</label>
                     <textarea id="chat-message" required rows="3" style="
                         width: 100%;
                         padding: 10px;
@@ -1192,11 +1189,15 @@
                 margin-top: auto;
                 outline: none;
             `;
-            submitButton.innerHTML = 'Send Message';
+            
+            // Get button text from widget data
+            const start_button_text = this.widget && this.widget.send_button_text ? 
+                this.widget.send_button_text : 'Send Message';
+            submitButton.innerHTML = start_button_text;
 
             // Add hover effect to submit button
             submitButton.addEventListener('mouseenter', () => {
-                submitButton.style.background = 'rgba(255, 255, 255, 1)';
+                submitButton.style.background = 'rgb(68, 40, 40)';
                 submitButton.style.transform = 'translateY(-2px)';
             });
 
@@ -1777,8 +1778,8 @@
             `;
 
             // Set button text from widget data
-            const buttonText = this.widget && this.widget.start_button_text ? 
-                this.widget.start_button_text : '💬 Start Chat';
+            const buttonText = this.widget && this.widget.button_text ? 
+                this.widget.button_text : '💬 Start Chat';
 
             this.chatButton.innerHTML = `
                 <div style="font-weight: bold; color: #333; font-size: 16px;">
