@@ -79,20 +79,27 @@
                 // Check if response contains chat data and chat exists
                 if (data.chat && this.chatExist) {
                     console.log('Existing chat found in response, opening chat interface');
+                    console.log('Chat data:', data.chat);
                     this.currentChatId = data.chat.id;
                     this.currentContact = data.chat.contact_id;
                     this.currentChat = data.chat; // Store the entire chat object
                     
                     // Initialize widget first
+                    console.log('Initializing widget...');
                     this.initializeWidget();
                     
                     // Initialize Echo for real-time communication
+                    console.log('Initializing Echo...');
                     this.initializeEcho();
                     
                     // Then open chat interface directly
+                    console.log('Setting timeout to expand video and show chat interface...');
                     setTimeout(() => {
+                        console.log('Timeout executed - expanding video...');
                         this.expandVideo();
+                        console.log('Video expanded - showing chat interface...');
                         this.showChatInterface();
+                        console.log('showChatInterface() called');
                     }, 1000);
                 } else {
                     // Continue with normal widget initialization
@@ -128,6 +135,9 @@
             const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
             const widgetTextColor = widgetStyles.widget_text_color || '#000000';
             
+            // Initialize backgroundStyle variable
+            let backgroundStyle = 'transparent';
+            
             // Apply styles to widget container
             this.widgetContainer.style.borderRadius = `${widgetBorderRadius}px`;
             this.widgetContainer.style.color = widgetTextColor;
@@ -139,7 +149,7 @@
                 const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
                 
                 // Set background based on available options
-                let backgroundStyle = widgetBackgroundColor1;
+                backgroundStyle = widgetBackgroundColor1;
                 if (widgetBackgroundUrl) {
                     // Check if it's an external URL (starts with http/https) or local path
                     if (widgetBackgroundUrl.startsWith('http://') || widgetBackgroundUrl.startsWith('https://')) {
@@ -155,6 +165,7 @@
             } else {
                 // For button widgets, ensure no background is set
                 this.widgetContainer.style.background = 'transparent';
+                backgroundStyle = 'transparent';
             }
             
             // Apply border radius to video container as well
@@ -1010,11 +1021,8 @@
                     this.muteButton.innerHTML = this.icons.mute; // Muted icon
                 }
                 
-                // Create and show chat interface directly
-                this.createChatInterface();
-                
-                // Load messages
-                this.loadMessages();
+                // Show chat interface (this will create the interface, initialize Echo, and load messages)
+                this.showChatInterface();
             } else {
                 // Hide video and buttons (only if they exist - for video widgets)
                 if (this.videoContainer) {
@@ -1382,13 +1390,19 @@
         }
 
         showChatInterface() {
+            console.log('showChatInterface() called');
+            console.log('Current chat ID:', this.currentChatId);
+            console.log('Current chat object:', this.currentChat);
+            
             // Hide form and show chat interface
             if (this.chatFormContainer) {
+                console.log('Hiding chat form container');
                 this.chatFormContainer.style.display = 'none';
             }
             
             // Mute and pause video when chat interface is shown (only if video exists)
             if (this.videoElement) {
+                console.log('Muting and pausing video');
                 this.videoElement.muted = true;
                 this.videoElement.pause();
                 this.isMuted = true;
@@ -1398,14 +1412,18 @@
             }
             
             // Create chat interface
+            console.log('Creating chat interface...');
             this.createChatInterface();
+            console.log('Chat interface created');
             
             // Initialize Echo if not already done
             if (!this.echo) {
+                console.log('Initializing Echo...');
                 this.initializeEcho();
             }
             
             // Start listening for real-time messages
+            console.log('Starting to listen for messages...');
             this.listenForMessages();
             
             // Check if we have messages from the response
@@ -1413,12 +1431,17 @@
                 console.log('Using messages from response:', this.currentChat.messages);
                 this.displayMessages(this.currentChat.messages);
             } else {
+                console.log('Loading messages from API...');
                 // Load messages from API
                 this.loadMessages();
             }
         }
 
         createChatInterface() {
+            console.log('createChatInterface() called');
+            console.log('Widget container exists:', !!this.widgetContainer);
+            console.log('Widget object:', this.widget);
+            
             // Get widget styles for background
             const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
             const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
@@ -1587,12 +1610,16 @@
                 });
             }
 
+            console.log('Appending chat interface container to widget container');
             this.widgetContainer.appendChild(this.chatInterfaceContainer);
+            console.log('Chat interface container appended successfully');
             
             // Trigger entrance animation
             setTimeout(() => {
+                console.log('Triggering entrance animation');
                 this.chatInterfaceContainer.style.opacity = '1';
                 this.chatInterfaceContainer.style.transform = 'scale(1) translateY(0)';
+                console.log('Entrance animation triggered');
             }, 50);
         }
 
