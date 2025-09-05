@@ -1665,7 +1665,7 @@
       
       // Get the last agent who responded
       const lastAgent = this.getLastAgent();
-      const agentName = lastAgent ? lastAgent.name : "Support Agent";
+      const agentName = lastAgent ? lastAgent.name : (this.widget && this.widget.agent_name_placeholder ? this.widget.agent_name_placeholder : "Support Agent");
       const agentPlaceholder = this.widget && this.widget.agent_placeholder 
         ? this.widget.agent_placeholder 
         : "We're here to help!";

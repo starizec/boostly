@@ -161,6 +161,9 @@ class WidgetResource extends Resource
                                 Forms\Components\TextInput::make('agent_placeholder')
                                     ->label('Placeholder za agenta')
                                     ->maxLength(255),
+                                Forms\Components\TextInput::make('agent_name_placeholder')
+                                    ->label('Placeholder za naziv agenta')
+                                    ->maxLength(255),
                             ]),
 
                     ]),
