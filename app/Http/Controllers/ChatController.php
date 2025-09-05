@@ -290,6 +290,9 @@ class ChatController extends Controller
         try {
             $messages = ChatMessage::where('chat_id', $chatId)
                 ->orderBy('created_at', 'asc')
+                ->with(['agent' => function($query) {
+                    $query->select('id', 'name', 'email');
+                }])
                 ->get();
 
             return response()->json([
