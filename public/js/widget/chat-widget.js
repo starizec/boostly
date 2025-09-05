@@ -92,15 +92,10 @@
                     console.log('Initializing Echo...');
                     this.initializeEcho();
                     
-                    // Then open chat interface directly
-                    console.log('Setting timeout to expand video and show chat interface...');
-                    setTimeout(() => {
-                        console.log('Timeout executed - expanding video...');
-                        this.expandVideo();
-                        console.log('Video expanded - showing chat interface...');
-                        this.showChatInterface();
-                        console.log('showChatInterface() called');
-                    }, 1000);
+                    // For existing chats, show chat interface immediately without video expansion delay
+                    console.log('Showing chat interface immediately for existing chat...');
+                    this.showChatInterface();
+                    console.log('showChatInterface() called');
                 } else {
                     // Continue with normal widget initialization
                     this.initializeWidget();
@@ -648,9 +643,13 @@
                     this.videoAspectRatio = this.videoElement.videoWidth / this.videoElement.videoHeight;
                     console.log('Video aspect ratio:', this.videoAspectRatio);
                     
-                    // Update widget dimensions with correct aspect ratio
-                    const newHeight = this.initialWidth / this.videoAspectRatio;
-                    this.widgetContainer.style.height = `${newHeight}px`;
+                    // Only update widget dimensions if we're not showing chat interface
+                    // (chat interface should use its own configured dimensions)
+                    if (!this.chatInterfaceContainer) {
+                        // Update widget dimensions with correct aspect ratio
+                        const newHeight = this.initialWidth / this.videoAspectRatio;
+                        this.widgetContainer.style.height = `${newHeight}px`;
+                    }
                 });
             } else {
                 // Fallback to a default video or show error
@@ -1394,10 +1393,35 @@
             console.log('Current chat ID:', this.currentChatId);
             console.log('Current chat object:', this.currentChat);
             
+            // Resize widget container to use configured dimensions for chat interface
+            // Get dimensions directly from widget data to ensure they're available
+            const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+            const widgetWidth = widgetStyles.widget_width || '300px';
+            const widgetHeight = widgetStyles.widget_height || '500px';
+            
+            // Parse dimensions and apply them
+            const width = parseInt(widgetWidth.replace('px', ''));
+            const height = parseInt(widgetHeight.replace('px', ''));
+            
+            this.widgetContainer.style.width = `${width}px`;
+            this.widgetContainer.style.height = `${height}px`;
+            
+            // Store dimensions for future use
+            this.widgetWidth = width;
+            this.widgetHeight = height;
+            
             // Hide form and show chat interface
             if (this.chatFormContainer) {
                 console.log('Hiding chat form container');
                 this.chatFormContainer.style.display = 'none';
+            }
+            
+            // Hide video and buttons (only if they exist - for video widgets)
+            if (this.videoContainer) {
+                this.videoContainer.style.display = 'none';
+            }
+            if (this.expandedButtonsContainer) {
+                this.expandedButtonsContainer.style.display = 'none';
             }
             
             // Mute and pause video when chat interface is shown (only if video exists)
