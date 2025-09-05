@@ -1232,7 +1232,8 @@
                 margin-top: 8px;
                 outline: none;
             `;
-            backButton.innerHTML = '← Back';
+            backButton.innerHTML = this.widget && this.widget.back_button_text ? 
+                this.widget.back_button_text : '← Back';
 
             // Add hover effect to back button
             backButton.addEventListener('mouseenter', () => {
@@ -1528,7 +1529,7 @@
                     font-size: 11px;
                     cursor: pointer;
                     transition: all 0.3s ease;
-                ">← Back</button>
+                ">${this.widget && this.widget.back_button_text ? this.widget.back_button_text : '← Back'}</button>
             `;
 
             // Create messages container
@@ -1565,10 +1566,9 @@
                 color: #333;
                 resize: none;
                 font-family: inherit;
-                min-height: 40px;
-                max-height: 100px;
             `;
-            this.messageInput.placeholder = 'Type your message...';
+            this.messageInput.placeholder = this.widget && this.widget.message_input_placeholder ? 
+                this.widget.message_input_placeholder : 'Type your message...';
             this.messageInput.rows = 1;
 
             // Auto-resize textarea
@@ -1591,7 +1591,8 @@
                 transition: all 0.3s ease;
                 white-space: nowrap;
             `;
-            sendButton.innerHTML = 'Send';
+            sendButton.innerHTML = this.widget && this.widget.send_button_text ? 
+                this.widget.send_button_text : 'Send';
 
             // Add hover effect to send button
             sendButton.addEventListener('mouseenter', () => {
