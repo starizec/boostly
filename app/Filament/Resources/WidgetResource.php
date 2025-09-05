@@ -121,7 +121,6 @@ class WidgetResource extends Resource
                                 Forms\Components\TextInput::make('form_placeholder_name')
                                     ->label('Placeholder za ime')
                                     ->maxLength(255),
-
                                 Forms\Components\Toggle::make('form_show_email')
                                     ->label('Prikaži email')
                                     ->required()
@@ -140,7 +139,7 @@ class WidgetResource extends Resource
                             ]),
 
                     ]),
-                Forms\Components\Section::make('Postavke gumba')
+                Forms\Components\Section::make('Tekstovi')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -158,6 +157,9 @@ class WidgetResource extends Resource
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('send_button_text')
                                     ->label('Tekst gumba poslati')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('agent_placeholder')
+                                    ->label('Placeholder za agenta')
                                     ->maxLength(255),
                             ]),
 

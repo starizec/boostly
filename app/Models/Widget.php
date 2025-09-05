@@ -45,7 +45,8 @@ class Widget extends Model
         'form_placeholder_message',
         'message_input_placeholder',
         'back_button_text',
-        'send_button_text'
+        'send_button_text',
+        'agent_placeholder'
     ];
 
     protected $casts = [
@@ -74,7 +75,8 @@ class Widget extends Model
         'form_placeholder_message' => 'string',
         'message_input_placeholder' => 'string',
         'back_button_text' => 'string',
-        'send_button_text' => 'string'
+        'send_button_text' => 'string',
+        'agent_placeholder' => 'string'
     ];
 
     public function widgetAction()
