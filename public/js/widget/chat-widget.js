@@ -359,6 +359,11 @@
       if (!this.isExpanded) {
         this.showMessageNotification(messageData.message);
       }
+
+      // Update agent name in header if this is an agent message
+      if (messageData.type === "agent" && messageData.agent) {
+        this.updateAgentNameInHeader(messageData.agent.name);
+      }
     }
 
     playNotificationSound() {
@@ -1626,21 +1631,25 @@
       // Create chat header
       const chatHeader = document.createElement("div");
       chatHeader.style.cssText = `
-                padding: 15px 20px;
+                padding: 6px 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
                 color: white;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
             `;
+      
+      // Get the last agent who responded
+      const lastAgent = this.getLastAgent();
+      const agentName = lastAgent ? lastAgent.name : "Support Agent";
+      const agentPlaceholder = this.widget && this.widget.agent_placeholder 
+        ? this.widget.agent_placeholder 
+        : "We're here to help!";
+      
       chatHeader.innerHTML = `
                 <div>
-                <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">${
-                  this.widget && this.widget.agent_placeholder
-                    ? this.widget.agent_placeholder
-                    : "We're here to help!"
-                }</p>
-                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">Chat Support</h3>
+                <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">${agentPlaceholder}</p>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">${agentName}</h3>
                     
                 </div>
                 <button id="back-to-video-btn" style="
@@ -1816,6 +1825,12 @@
         this.lastMessageTime = new Date(
           messages[messages.length - 1].created_at
         ).getTime();
+      }
+
+      // Update agent name in header based on last agent message
+      const lastAgent = this.getLastAgent();
+      if (lastAgent && this.chatInterfaceContainer) {
+        this.updateAgentNameInHeader(lastAgent.name);
       }
 
       // Scroll to bottom
@@ -2006,6 +2021,35 @@
       // Toggle chat functionality
       console.log("Chat button clicked!");
       // You can expand this to show/hide chat interface
+    }
+
+    // Helper method to get the last agent who responded
+    getLastAgent() {
+      if (!this.currentChat || !this.currentChat.messages) {
+        return null;
+      }
+
+      // Find the last message from an agent
+      for (let i = this.currentChat.messages.length - 1; i >= 0; i--) {
+        const message = this.currentChat.messages[i];
+        if (message.type === "agent" && message.agent) {
+          return message.agent;
+        }
+      }
+
+      return null;
+    }
+
+    // Helper method to update agent name in chat header
+    updateAgentNameInHeader(agentName) {
+      if (!this.chatInterfaceContainer) {
+        return;
+      }
+
+      const chatHeader = this.chatInterfaceContainer.querySelector('h3');
+      if (chatHeader) {
+        chatHeader.textContent = agentName;
+      }
     }
 
     // Cleanup method
