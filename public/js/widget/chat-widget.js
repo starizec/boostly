@@ -1912,7 +1912,8 @@
 
       messageDiv.style.cssText = `
                 display: flex;
-                justify-content: ${isUser ? "flex-end" : "flex-start"};
+                flex-direction: column;
+                align-items: ${isUser ? "flex-end" : "flex-start"};
                 margin-bottom: 8px;
             `;
 
@@ -1922,12 +1923,14 @@
       const agentBubbleColor = widgetStyles.widget_agent_buble_color || "white";
       const userBubbleBackgroundColor = widgetStyles.widget_user_buble_background_color || "rgba(255, 255, 255, 0.95)";
       const userBubbleColor = widgetStyles.widget_user_buble_color || "#333";
+      const chatBodyTextColor = widgetStyles.chat_body_text_color || "rgba(255, 255, 255, 0.7)";
+      const widgetBorderRadius = widgetStyles.widget_border_radius || 12;
 
       const messageBubble = document.createElement("div");
       messageBubble.style.cssText = `
                 max-width: 80%;
                 padding: 10px 12px;
-                border-radius: 12px;
+                border-radius: ${widgetBorderRadius}px;
                 font-size: 14px;
                 line-height: 1.4;
                 word-wrap: break-word;
@@ -1938,6 +1941,28 @@
 
       messageBubble.textContent = message.message;
       messageDiv.appendChild(messageBubble);
+
+      // Add timestamp below the message bubble
+      if (message.created_at) {
+        const timestamp = document.createElement("div");
+        const messageDate = new Date(message.created_at);
+        const timeString = messageDate.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
+        
+        timestamp.textContent = timeString;
+        timestamp.style.cssText = `
+                    font-size: 11px;
+                    color: ${chatBodyTextColor};
+                    margin-top: 2px;
+                    opacity: 0.8;
+                    font-weight: 400;
+                `;
+        
+        messageDiv.appendChild(timestamp);
+      }
 
       return messageDiv;
     }
