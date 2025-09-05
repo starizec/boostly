@@ -1630,10 +1630,34 @@
 
       // Create chat header
       const chatHeader = document.createElement("div");
+      
+      // Get chat header styles from widget style object
+      const chatHeaderStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const chatHeaderBackgroundColor = chatHeaderStyles.chat_header_background_color || 'rgba(0, 0, 0, 0.8)';
+      const chatHeaderTextColor = chatHeaderStyles.chat_header_text_color || 'white';
+      const chatHeaderBackgroundImage = chatHeaderStyles.chat_header_background_image;
+      
+      // Build background style
+      let headerBackgroundStyle = chatHeaderBackgroundColor;
+      if (chatHeaderBackgroundImage) {
+        let backgroundImageUrl = chatHeaderBackgroundImage;
+        if (backgroundImageUrl.startsWith("http://") || backgroundImageUrl.startsWith("https://")) {
+          backgroundImageUrl = `url(${backgroundImageUrl})`;
+        } else {
+          backgroundImageUrl = `url(${this.host}/storage/${backgroundImageUrl})`;
+        }
+        headerBackgroundStyle = `${backgroundImageUrl}, ${chatHeaderBackgroundColor}`;
+      }
+      
       chatHeader.style.cssText = `
                 padding: 6px 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-                color: white;
+                color: ${chatHeaderTextColor};
+                background: ${headerBackgroundStyle};
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                border-radius: ${widgetBorderRadius}px ${widgetBorderRadius}px 0 0;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -1648,13 +1672,13 @@
       
       chatHeader.innerHTML = `
                 <div>
-                <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">${agentPlaceholder}</p>
-                    <h3 style="margin: 0; font-size: 16px; font-weight: bold;">${agentName}</h3>
+                <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8; color: ${chatHeaderTextColor};">${agentPlaceholder}</p>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: bold; color: ${chatHeaderTextColor};">${agentName}</h3>
                     
                 </div>
                 <button id="back-to-video-btn" style="
                     background: rgba(255, 255, 255, 0.2);
-                    color: white;
+                    color: ${chatHeaderTextColor};
                     border: 1px solid rgba(255, 255, 255, 0.3);
                     padding: 6px 12px;
                     border-radius: 4px;
@@ -1670,6 +1694,24 @@
 
       // Create messages container
       this.messagesContainer = document.createElement("div");
+      
+      // Get chat body styles from widget style object
+      const chatBodyStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const chatBodyBackgroundColor = chatBodyStyles.chat_body_background_color || 'transparent';
+      const chatBodyBackgroundImage = chatBodyStyles.chat_body_background_image;
+      
+      // Build background style for chat body
+      let bodyBackgroundStyle = chatBodyBackgroundColor;
+      if (chatBodyBackgroundImage) {
+        let backgroundImageUrl = chatBodyBackgroundImage;
+        if (backgroundImageUrl.startsWith("http://") || backgroundImageUrl.startsWith("https://")) {
+          backgroundImageUrl = `url(${backgroundImageUrl})`;
+        } else {
+          backgroundImageUrl = `url(${this.host}/storage/${backgroundImageUrl})`;
+        }
+        bodyBackgroundStyle = `${backgroundImageUrl}, ${chatBodyBackgroundColor}`;
+      }
+      
       this.messagesContainer.style.cssText = `
                 flex: 1;
                 padding: 15px;
@@ -1677,16 +1719,43 @@
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                background: ${bodyBackgroundStyle};
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
             `;
 
       // Create input container
       const inputContainer = document.createElement("div");
+      
+      // Get chat footer styles from widget style object
+      const chatFooterStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const chatFooterBackgroundColor = chatFooterStyles.chat_footer_background_color || 'rgba(0, 0, 0, 0.8)';
+      const chatFooterBackgroundImage = chatFooterStyles.chat_footer_background_image;
+      
+      // Build background style for chat footer
+      let footerBackgroundStyle = chatFooterBackgroundColor;
+      if (chatFooterBackgroundImage) {
+        let backgroundImageUrl = chatFooterBackgroundImage;
+        if (backgroundImageUrl.startsWith("http://") || backgroundImageUrl.startsWith("https://")) {
+          backgroundImageUrl = `url(${backgroundImageUrl})`;
+        } else {
+          backgroundImageUrl = `url(${this.host}/storage/${backgroundImageUrl})`;
+        }
+        footerBackgroundStyle = `${backgroundImageUrl}, ${chatFooterBackgroundColor}`;
+      }
+      
       inputContainer.style.cssText = `
                 padding: 15px 20px;
                 border-top: 1px solid rgba(255, 255, 255, 0.2);
                 display: flex;
                 gap: 10px;
                 align-items: flex-end;
+                background: ${footerBackgroundStyle};
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                border-radius: 0 0 ${widgetBorderRadius}px ${widgetBorderRadius}px;
             `;
 
       // Create message input

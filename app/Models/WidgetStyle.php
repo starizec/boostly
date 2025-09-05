@@ -42,5 +42,20 @@ class WidgetStyle extends Model
         'widget_agent_buble_color',
         'widget_user_buble_background_color',
         'widget_user_buble_color',
+
+        // Chat Header Styles
+        'chat_header_background_color',
+        'chat_header_text_color',
+        'chat_header_background_image',
+
+        // Chat Body Styles
+        'chat_body_background_color',
+        'chat_body_text_color',
+        'chat_body_background_image',
+        
+        // Chat Footer Styles
+        'chat_footer_background_color',
+        'chat_footer_text_color',
+        'chat_footer_background_image',
     ];
 }

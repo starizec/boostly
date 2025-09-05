@@ -104,6 +104,39 @@ class WidgetStyleResource extends Resource
                         Forms\Components\ColorPicker::make('widget_user_buble_color')
                             ->default('#FFFFFF'),
                     ])->columns(2),
+
+                Forms\Components\Section::make('Chat Header Styles')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('chat_header_background_color')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('chat_header_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('chat_header_background_image')
+                            ->url()
+                            ->nullable(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Chat Body Styles')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('chat_body_background_color')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('chat_body_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('chat_body_background_image')
+                            ->url()
+                            ->nullable(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Chat Footer Styles')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('chat_footer_background_color')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('chat_footer_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('chat_footer_background_image')
+                            ->url()
+                            ->nullable(),
+                    ])->columns(2),
             ]);
     }
 
