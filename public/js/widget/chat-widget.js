@@ -1916,6 +1916,13 @@
                 margin-bottom: 8px;
             `;
 
+      // Get widget styles for chat bubble customization
+      const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const agentBubbleBackgroundColor = widgetStyles.widget_agent_buble_background_color || "rgba(255, 255, 255, 0.2)";
+      const agentBubbleColor = widgetStyles.widget_agent_buble_color || "white";
+      const userBubbleBackgroundColor = widgetStyles.widget_user_buble_background_color || "rgba(255, 255, 255, 0.95)";
+      const userBubbleColor = widgetStyles.widget_user_buble_color || "#333";
+
       const messageBubble = document.createElement("div");
       messageBubble.style.cssText = `
                 max-width: 80%;
@@ -1924,12 +1931,8 @@
                 font-size: 14px;
                 line-height: 1.4;
                 word-wrap: break-word;
-                background: ${
-                  isUser
-                    ? "rgba(255, 255, 255, 0.95)"
-                    : "rgba(255, 255, 255, 0.2)"
-                };
-                color: ${isUser ? "#333" : "white"};
+                background: ${isUser ? userBubbleBackgroundColor : agentBubbleBackgroundColor};
+                color: ${isUser ? userBubbleColor : agentBubbleColor};
                 backdrop-filter: blur(10px);
             `;
 
