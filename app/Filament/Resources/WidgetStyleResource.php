@@ -41,7 +41,77 @@ class WidgetStyleResource extends Resource
                             ->default('#333333'),
                         Forms\Components\ColorPicker::make('start_button_hover_text_color')
                             ->default('#FFFFFF'),
-                    ])->columns(2),
+                    ])->columns(4),
+
+
+
+                Forms\Components\Section::make('Widget Container Styles')
+                    ->schema([
+                        Forms\Components\TextInput::make('widget_border_radius')
+                            ->numeric()
+                            ->default(10),
+                        Forms\Components\ColorPicker::make('widget_background_color_1')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('widget_background_color_2')
+                            ->nullable(),
+                        Forms\Components\TextInput::make('widget_background_url')
+                            ->url()
+                            ->nullable(),
+                        Forms\Components\ColorPicker::make('widget_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('widget_width')
+                            ->default('300px'),
+                        Forms\Components\TextInput::make('widget_height')
+                            ->default('500px'),
+                    ])->columns(4),
+
+                Forms\Components\Section::make('Chat Styles')
+                    ->schema([
+                        Forms\Components\View::make('components.form-heading')
+                            ->viewData(['title' => 'Chat Header'])->columnSpanFull(),
+                        Forms\Components\ColorPicker::make('chat_header_background_color')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('chat_header_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('chat_header_background_image')
+                            ->url()
+                            ->nullable(),
+
+                        Forms\Components\View::make('components.form-heading')
+                            ->viewData(['title' => 'Chat Body'])->columnSpanFull(),
+                        Forms\Components\ColorPicker::make('chat_body_background_color')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('chat_body_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('chat_body_background_image')
+                            ->url()
+                            ->nullable(),
+
+                        Forms\Components\View::make('components.form-heading')
+                            ->viewData(['title' => 'Chat Footer'])->columnSpanFull(),
+                        Forms\Components\ColorPicker::make('chat_footer_background_color')
+                            ->default('#FFFFFF'),
+                        Forms\Components\ColorPicker::make('chat_footer_text_color')
+                            ->default('#000000'),
+                        Forms\Components\TextInput::make('chat_footer_background_image')
+                            ->url()
+                            ->nullable(),
+
+                        Forms\Components\View::make('components.form-heading')
+                            ->viewData(['title' => 'Chat bubles'])->columnSpanFull(),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\ColorPicker::make('widget_agent_buble_background_color')
+                                    ->default('#F0F0F0'),
+                                Forms\Components\ColorPicker::make('widget_agent_buble_color')
+                                    ->default('#000000'),
+                                Forms\Components\ColorPicker::make('widget_user_buble_background_color')
+                                    ->default('#000000'),
+                                Forms\Components\ColorPicker::make('widget_user_buble_color')
+                                    ->default('#FFFFFF'),
+                            ]),
+                    ])->columns(3),
+
 
                 Forms\Components\Section::make('Chat Button Styles')
                     ->schema([
@@ -71,71 +141,6 @@ class WidgetStyleResource extends Resource
                             ->default('#333333'),
                         Forms\Components\ColorPicker::make('action_button_hover_text_color')
                             ->default('#FFFFFF'),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Widget Container Styles')
-                    ->schema([
-                        Forms\Components\TextInput::make('widget_border_radius')
-                            ->numeric()
-                            ->default(10),
-                        Forms\Components\ColorPicker::make('widget_background_color_1')
-                            ->default('#FFFFFF'),
-                        Forms\Components\ColorPicker::make('widget_background_color_2')
-                            ->nullable(),
-                        Forms\Components\TextInput::make('widget_background_url')
-                            ->url()
-                            ->nullable(),
-                        Forms\Components\ColorPicker::make('widget_text_color')
-                            ->default('#000000'),
-                        Forms\Components\TextInput::make('widget_width')
-                            ->default('300px'),
-                        Forms\Components\TextInput::make('widget_height')
-                            ->default('500px'),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Chat Bubble Styles')
-                    ->schema([
-                        Forms\Components\ColorPicker::make('widget_agent_buble_background_color')
-                            ->default('#F0F0F0'),
-                        Forms\Components\ColorPicker::make('widget_agent_buble_color')
-                            ->default('#000000'),
-                        Forms\Components\ColorPicker::make('widget_user_buble_background_color')
-                            ->default('#000000'),
-                        Forms\Components\ColorPicker::make('widget_user_buble_color')
-                            ->default('#FFFFFF'),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Chat Header Styles')
-                    ->schema([
-                        Forms\Components\ColorPicker::make('chat_header_background_color')
-                            ->default('#FFFFFF'),
-                        Forms\Components\ColorPicker::make('chat_header_text_color')
-                            ->default('#000000'),
-                        Forms\Components\TextInput::make('chat_header_background_image')
-                            ->url()
-                            ->nullable(),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Chat Body Styles')
-                    ->schema([
-                        Forms\Components\ColorPicker::make('chat_body_background_color')
-                            ->default('#FFFFFF'),
-                        Forms\Components\ColorPicker::make('chat_body_text_color')
-                            ->default('#000000'),
-                        Forms\Components\TextInput::make('chat_body_background_image')
-                            ->url()
-                            ->nullable(),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Chat Footer Styles')
-                    ->schema([
-                        Forms\Components\ColorPicker::make('chat_footer_background_color')
-                            ->default('#FFFFFF'),
-                        Forms\Components\ColorPicker::make('chat_footer_text_color')
-                            ->default('#000000'),
-                        Forms\Components\TextInput::make('chat_footer_background_image')
-                            ->url()
-                            ->nullable(),
                     ])->columns(2),
             ]);
     }
