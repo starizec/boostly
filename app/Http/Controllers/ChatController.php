@@ -13,6 +13,8 @@ use App\Models\Chat;
 use App\Models\ChatMessage;
 use App\Models\Contact;
 use App\Models\Status;
+use App\Models\ConversionUrl;
+use App\Services\AnalyticsService;
 use App\Events\MessageSent;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -23,8 +25,9 @@ class ChatController extends Controller
     public $path;
     public $clientDomain;
     public $clientUrl;
-    public function __construct()
-    {
+    public function __construct(
+        private AnalyticsService $analyticsService
+    ) {
         $referer = request()->headers->get('referer');
 
         $protocol = parse_url($referer, PHP_URL_SCHEME);
@@ -88,6 +91,9 @@ class ChatController extends Controller
                 'message' => 'Domain not found in authorized domains list'
             ], 403);
         }
+
+        // Check if client_url matches any conversion URL and track conversion
+        $this->checkAndTrackConversion($request);
 
         if ($request->input('bc_id') && $request->input('bw_id')) {
             $chat = Chat::with('messages')->with('messages.agent')->find($request->input('bc_id'));
@@ -419,5 +425,47 @@ class ChatController extends Controller
             ->with('widgetAction', $widgetAction)
             ->with('widgetStyle', $widgetStyle)
             ->with('media', $media);
+    }
+
+    /**
+     * Check if client URL matches any conversion URL and track conversion
+     */
+    private function checkAndTrackConversion(Request $request): void
+    {
+        try {
+            // Check if the client URL matches any conversion URL
+            $conversionUrl = ConversionUrl::where('url', $this->clientUrl)->first();
+            
+            if ($conversionUrl) {
+                // Get widget ID from request
+                $widgetId = $request->input('bw_id');
+                
+                if ($widgetId) {
+                    // Track conversion event
+                    $this->analyticsService->track(
+                        widgetId: (int) $widgetId,
+                        event: 'conversion',
+                        url: $this->clientUrl,
+                        data: [
+                            'conversion_url_id' => $conversionUrl->id,
+                            'conversion_url' => $conversionUrl->url,
+                            'client_domain' => $this->clientDomain,
+                            'has_existing_chat' => $request->input('bc_id') ? true : false,
+                            'timestamp' => now()->toISOString(),
+                        ]
+                    );
+                    
+                    Log::info('Conversion tracked for URL: ' . $this->clientUrl . ' on widget: ' . $widgetId);
+                } else {
+                    Log::warning('Conversion URL matched but no widget ID provided: ' . $this->clientUrl);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error tracking conversion: ' . $e->getMessage(), [
+                'client_url' => $this->clientUrl,
+                'client_domain' => $this->clientDomain,
+                'widget_id' => $request->input('bw_id'),
+            ]);
+        }
     }
 }
