@@ -1542,6 +1542,18 @@
             this.currentChatId = data.chat_id;
             this.currentContact = data.contact;
 
+            // Track chat started event
+            this.trackAnalytics('chat_started', {
+              chat_id: data.chat_id,
+              contact_id: data.contact,
+              widget_type: this.widget && this.widget.media ? 'video' : 'button',
+              form_data: {
+                has_name: formData.name ? true : false,
+                has_email: formData.email ? true : false,
+                has_message: formData.message ? true : false
+              }
+            });
+
             // Show chat interface instead of hiding form
             this.showChatInterface();
           } else {
