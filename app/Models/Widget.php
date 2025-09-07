@@ -105,4 +105,9 @@ class Widget extends Model
     {
         return $this->hasMany(WidgetUrl::class);
     }
+
+    public function analytics(): HasMany
+    {
+        return $this->hasMany(Analytics::class);
+    }
 } 
