@@ -39,6 +39,42 @@
       };
     }
 
+    /**
+     * Track analytics events
+     */
+    async trackAnalytics(event, data = {}) {
+      if (!this.widgetId) {
+        console.warn('Cannot track analytics: widget ID not available');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${this.host}/api/analytics/track`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            widget_id: this.widgetId,
+            event: event,
+            url: this.clientUrl,
+            data: {
+              timestamp: new Date().toISOString(),
+              user_agent: navigator.userAgent,
+              ...data
+            }
+          })
+        });
+
+        if (!response.ok) {
+          console.error('Analytics tracking failed:', response.status);
+        }
+      } catch (error) {
+        console.error('Analytics tracking error:', error);
+      }
+    }
+
     async init() {
       try {
         // Check if chat exists in localStorage
@@ -116,6 +152,12 @@
 
       // Apply widget styles after creation to ensure they're applied
       this.applyWidgetStyles();
+
+      // Track widget loaded event
+      this.trackAnalytics('loaded', {
+        widget_type: this.widget && this.widget.media ? 'video' : 'button',
+        has_chat: this.chatExist
+      });
     }
 
     applyWidgetStyles() {
@@ -866,6 +908,13 @@
 
       this.isExpanded = true;
 
+      // Track widget opened event
+      this.trackAnalytics('opened', {
+        expanded_width: expandedWidth,
+        expanded_height: expandedHeight,
+        widget_type: this.widget && this.widget.media ? 'video' : 'button'
+      });
+
       console.log("Video expanded to:", expandedWidth, "x", expandedHeight);
     }
 
@@ -985,6 +1034,14 @@
         // Add click handler for action button
         this.actionButton.addEventListener("click", (e) => {
           e.stopPropagation(); // Prevent widget click event
+          
+          // Track action button clicked event
+          this.trackAnalytics('action_clicked', {
+            action_url: this.widget.widget_action.url,
+            action_text: this.widget.widget_action.button_text || "Take Action",
+            widget_type: this.widget && this.widget.media ? 'video' : 'button'
+          });
+          
           if (this.widget.widget_action.url) {
             window.open(this.widget.widget_action.url, "_blank");
           }
