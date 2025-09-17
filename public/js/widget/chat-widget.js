@@ -1846,13 +1846,7 @@
           ? this.widget.message_input_placeholder
           : "Type your message...";
       this.messageInput.rows = 1;
-
-      // Auto-resize textarea
-      this.messageInput.addEventListener("input", () => {
-        this.messageInput.style.height = "auto";
-        this.messageInput.style.height =
-          Math.min(this.messageInput.scrollHeight, 100) + "px";
-      });
+      this.messageInput.style.resize = "none"; // Disable manual resize
 
       // Create send button
       const sendButton = document.createElement("button");
