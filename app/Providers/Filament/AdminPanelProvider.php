@@ -25,7 +25,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('')
+            ->path('/boostadmin')
             ->login()
             ->defaultThemeMode(ThemeMode::Light)
             ->darkMode(false)
