@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Frontend\AnalyticsController as FrontendAnalyticsController;
+
+Route::get('/', [FrontendAnalyticsController::class, 'index'])->name('analytics.index');
 
 Route::post('/verify', [ChatController::class, 'verifyDomain'])->middleware('cors')->name('verify.domain');
 

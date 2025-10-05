@@ -16,7 +16,7 @@ License: You must have a valid license to legally use the template for your proj
 	<meta name="author" content="NobleUI">
 	<meta name="keywords" content="nobleui, bootstrap, bootstrap 5, bootstrap5, admin, dashboard, template, responsive, css, sass, html, laravel, theme, front-end, ui kit, web">
 
-  <title>NobleUI - Laravel Admin Dashboard Template</title>
+  <title>{{ config('app.name') }}</title>
 
   <!-- color-modes:js -->
   @vite(['resources/js/pages/color-modes.js'])
