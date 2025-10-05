@@ -18,22 +18,10 @@
         </a>
       </li>
       <li class="nav-item nav-category">Analitika</li>
-      <li class="nav-item {{ active_class(['apps/chat']) }}">
-        <a href="{{ url('/apps/chat') }}" class="nav-link">
-          <i class="link-icon" data-lucide="layout-grid"></i>
-          <span class="link-title">Sve</span>
-        </a>
-      </li>
-      <li class="nav-item {{ active_class(['apps/chat']) }}">
-        <a href="{{ url('/apps/chat') }}" class="nav-link">
+      <li class="nav-item {{ active_class(['analytics/widgets']) }}">
+        <a href="{{ url('/analytics/widgets') }}" class="nav-link">
           <i class="link-icon" data-lucide="trello"></i>
           <span class="link-title">Widgeti</span>
-        </a>
-      </li>
-      <li class="nav-item {{ active_class(['apps/chat']) }}">
-        <a href="{{ url('/apps/chat') }}" class="nav-link">
-          <i class="link-icon" data-lucide="activity"></i>
-          <span class="link-title">Akcije</span>
         </a>
       </li>
     </ul>
