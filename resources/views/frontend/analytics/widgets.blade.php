@@ -18,8 +18,8 @@
                 <input type="text" class="form-control bg-transparent border-primary" placeholder="Until date"
                     data-input>
             </div>
-            <button type="button" class="btn btn-outline-secondary me-2 mb-2 mb-md-0" id="btnLastMonth"> Prošli
-                mjesec</button>
+            <button type="button" class="btn btn-outline-primary me-2 mb-2 mb-md-0" id="btnLastMonth"
+                aria-label="Prošli mjesec">Prošli mjesec</button>
             <button type="button" class="btn btn-outline-primary me-2 mb-2 mb-md-0" id="btnThisMonth">Ovaj mjesec</button>
             @isset($allEventTypes)
                 <div class="me-2 mb-2 mb-md-0 d-flex align-items-center flex-wrap" id="eventTypeInline">

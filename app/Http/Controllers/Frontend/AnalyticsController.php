@@ -270,11 +270,96 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function widget($widgetId)
+    public function widget(Request $request, $widgetId)
     {
         $widget = Widget::find($widgetId);
+        $widgets = Widget::where('user_id', Auth::user()->id)->get();
+
+        // Parse date range from query (dd.mm.yyyy.), default to current month
+        $fromParam = $request->query('from');
+        $untilParam = $request->query('until');
+        $start = null;
+        $end = null;
+        try {
+            if ($fromParam) {
+                $start = Carbon::createFromFormat('d.m.Y', rtrim($fromParam, '.'))->startOfDay();
+            }
+            if ($untilParam) {
+                $end = Carbon::createFromFormat('d.m.Y', rtrim($untilParam, '.'))->endOfDay();
+            }
+        } catch (\Throwable $e) {
+            $start = null; $end = null; // fallback handled below
+        }
+        if (!$start || !$end) {
+            $start = Carbon::now()->startOfMonth();
+            $end = Carbon::now()->endOfMonth();
+        }
+
+        // Selected event types from query (default to loaded & opened)
+        $allEventTypes = Analytics::getEventTypes();
+        $eventsParam = $request->query('events');
+        $eventTypes = is_array($eventsParam) ? array_values(array_intersect($allEventTypes, $eventsParam)) : [];
+        if (empty($eventTypes)) {
+            $eventTypes = ['loaded', 'opened'];
+        }
+
+        // Build daily categories and series for selected events for this widget
+        $dateLabels = [];
+        $cursor = $start->copy()->startOfDay();
+        while ($cursor->lte($end)) {
+            $dateLabels[] = $cursor->format('Y-m-d');
+            $cursor->addDay();
+        }
+
+        $rawDaily = Analytics::query()
+            ->selectRaw("DATE(created_at) as day, event, COUNT(*) as total")
+            ->where('widget_id', $widgetId)
+            ->whereIn('event', $eventTypes)
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy(DB::raw('DATE(created_at)'), 'event')
+            ->get()
+            ->groupBy('event');
+
+        $revenueSeries = [];
+        foreach ($eventTypes as $etype) {
+            $series = [
+                'name' => $etype,
+                'data' => array_fill(0, count($dateLabels), 0),
+            ];
+            $rows = $rawDaily->get($etype, collect());
+            foreach ($rows as $row) {
+                $idx = array_search(Carbon::parse($row->day)->format('Y-m-d'), $dateLabels, true);
+                if ($idx !== false) {
+                    $series['data'][$idx] = (int) $row->total;
+                }
+            }
+            $revenueSeries[] = $series;
+        }
+
+        // Totals over range for this widget
+        $totals = Analytics::query()
+            ->selectRaw('event, COUNT(*) as total')
+            ->where('widget_id', $widgetId)
+            ->whereIn('event', $eventTypes)
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('event')
+            ->get()
+            ->pluck('total', 'event');
+        $eventTotals = [];
+        foreach ($eventTypes as $etype) {
+            $eventTotals[$etype] = (int) ($totals[$etype] ?? 0);
+        }
+
         return view('frontend.analytics.widget', [
             'widget' => $widget,
+            'widgets' => $widgets,
+            'eventTypes' => $eventTypes,
+            'allEventTypes' => $allEventTypes,
+            'fromDate' => $start->format('Y-m-d'),
+            'untilDate' => $end->format('Y-m-d'),
+            'revenueCategories' => $dateLabels,
+            'revenueSeries' => $revenueSeries,
+            'eventTotals' => $eventTotals,
         ]);
     }
 }
