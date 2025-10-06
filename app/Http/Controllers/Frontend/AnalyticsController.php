@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Analytics;
 use App\Models\Widget;
+use App\Models\WidgetAction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -360,6 +361,22 @@ class AnalyticsController extends Controller
             'revenueCategories' => $dateLabels,
             'revenueSeries' => $revenueSeries,
             'eventTotals' => $eventTotals,
+        ]);
+    }
+
+    public function actions()
+    {
+        $actions = WidgetAction::where('user_id', Auth::user()->id)->get();
+        return view('frontend.analytics.actions', [
+            'actions' => $actions,
+        ]);
+    }   
+
+    public function action($actionId)
+    {
+        $action = WidgetAction::find($actionId);
+        return view('frontend.analytics.action', [
+            'action' => $action,
         ]);
     }
 }

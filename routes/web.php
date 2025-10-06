@@ -8,6 +8,8 @@ use App\Http\Controllers\Frontend\AnalyticsController as FrontendAnalyticsContro
 Route::get('/', [FrontendAnalyticsController::class, 'index'])->name('analytics.index');
 Route::get('/analytics/widgets', [FrontendAnalyticsController::class, 'widgets'])->name('analytics.widgets');
 Route::get('/analytics/widget/{widgetId}', [FrontendAnalyticsController::class, 'widget'])->name('analytics.widget');
+Route::get('/analytics/actions', [FrontendAnalyticsController::class, 'actions'])->name('analytics.actions');
+Route::get('/analytics/action/{actionId}', [FrontendAnalyticsController::class, 'action'])->name('analytics.action');
 
 Route::post('/verify', [ChatController::class, 'verifyDomain'])->middleware('cors')->name('verify.domain');
 

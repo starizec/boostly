@@ -24,6 +24,12 @@
           <span class="link-title">Widgeti</span>
         </a>
       </li>
+     {{--  <li class="nav-item {{ active_class(['analytics/actions']) }}">
+        <a href="{{ url('/analytics/actions') }}" class="nav-link">
+          <i class="link-icon" data-lucide="activity"></i>
+          <span class="link-title">Akcije</span>
+        </a>
+      </li> --}}
     </ul>
   </div>
 </nav>
