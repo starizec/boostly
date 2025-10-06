@@ -6,6 +6,8 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Frontend\AnalyticsController as FrontendAnalyticsController;
 
 Route::get('/', [FrontendAnalyticsController::class, 'index'])->name('analytics.index');
+Route::get('/analytics/widgets', [FrontendAnalyticsController::class, 'widgets'])->name('analytics.widgets');
+Route::get('/analytics/widget/{widgetId}', [FrontendAnalyticsController::class, 'widget'])->name('analytics.widget');
 
 Route::post('/verify', [ChatController::class, 'verifyDomain'])->middleware('cors')->name('verify.domain');
 
@@ -32,6 +34,6 @@ Route::prefix('api/analytics')->middleware('cors')->group(function () {
     Route::post('/track/conversion', [AnalyticsController::class, 'trackConversion'])->name('analytics.track.conversion');
     
     // Analytics retrieval endpoints
-    Route::get('/widget/{widgetId}', [AnalyticsController::class, 'getWidgetAnalytics'])->name('analytics.widget');
+    //Route::get('/widget/{widgetId}', [AnalyticsController::class, 'getWidgetAnalytics'])->name('analytics.widget');
     Route::get('/widget/{widgetId}/summary', [AnalyticsController::class, 'getWidgetAnalyticsSummary'])->name('analytics.widget.summary');
 });

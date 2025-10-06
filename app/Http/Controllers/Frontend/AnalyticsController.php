@@ -82,10 +82,22 @@ class AnalyticsController extends Controller
             'name' => 'action clicked',
             'data' => array_fill(0, count($dateLabels), 0),
         ]];
+        $chartSeriesChatClicked = isset($seriesByEvent['chat_clicked']) ? [$seriesByEvent['chat_clicked']] : [[
+            'name' => 'chat clicked',
+            'data' => array_fill(0, count($dateLabels), 0),
+        ]];
+        $chartSeriesChatStarted = isset($seriesByEvent['chat_started']) ? [$seriesByEvent['chat_started']] : [[
+            'name' => 'chat started',
+            'data' => array_fill(0, count($dateLabels), 0),
+        ]];
+        $chartSeriesConversion = isset($seriesByEvent['conversion']) ? [$seriesByEvent['conversion']] : [[
+            'name' => 'conversion',
+            'data' => array_fill(0, count($dateLabels), 0),
+        ]];
 
         // All-time totals and month-over-month change for key events
         $widgetIds = $widgets->pluck('id');
-        $keyEvents = ['loaded', 'opened', 'action_clicked'];
+        $keyEvents = ['loaded', 'opened', 'action_clicked', 'chat_clicked', 'chat_started', 'conversion'];
 
         // All-time totals
         $allTime = Analytics::query()
@@ -142,17 +154,43 @@ class AnalyticsController extends Controller
             'chartSeriesOpened' => $chartSeriesOpened,
             'chartSeriesLoaded' => $chartSeriesLoaded,
             'chartSeriesActionClicked' => $chartSeriesActionClicked,
+            'chartSeriesChatClicked' => $chartSeriesChatClicked,
+            'chartSeriesChatStarted' => $chartSeriesChatStarted,
+            'chartSeriesConversion' => $chartSeriesConversion,
             'eventStats' => $eventStats,
         ]);
     }
 
     public function widgets()
     {
-        return view('frontend.analytics.widgets');
+        $widgets = Widget::where('user_id', Auth::user()->id)->get();
+        $eventTypes = Analytics::getEventTypes();
+        $analyticsCounts = Analytics::query()
+        ->selectRaw('widget_id, event, COUNT(*) as total')
+        ->whereIn('widget_id', $widgets->pluck('id'))
+        ->groupBy('widget_id', 'event')
+        ->get()
+        ->groupBy('widget_id')
+        ->map(function ($rows) {
+            $perEvent = [];
+            foreach ($rows as $row) {
+                $perEvent[$row->event] = (int) $row->total;
+            }
+            return $perEvent;
+        });
+
+        return view('frontend.analytics.widgets', [
+            'widgets' => $widgets,
+            'eventTypes' => $eventTypes,
+            'analyticsCounts' => $analyticsCounts,
+        ]);
     }
 
-    public function actions()
+    public function widget($widgetId)
     {
-        return view('frontend.analytics.actions');
+        $widget = Widget::find($widgetId);
+        return view('frontend.analytics.widget', [
+            'widget' => $widget,
+        ]);
     }
 }
