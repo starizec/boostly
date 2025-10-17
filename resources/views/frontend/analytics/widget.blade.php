@@ -208,7 +208,7 @@
 
             const colors = (window && window.config && window.config.colors) ?
                 window.config.colors : {
-                    primary: '#6571ff',
+                    primary: '#0ea5e9',
                     success: '#00c853',
                     gridBorder: 'rgba(77, 138, 240, .15)'
                 };

@@ -253,7 +253,7 @@
 
             const colors = (window && window.config && window.config.colors)
                 ? window.config.colors
-                : { primary: '#6571ff', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
+                : { primary: '#28a745', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
 
             const options = {
                 chart: {
@@ -301,7 +301,7 @@
 
             const colors = (window && window.config && window.config.colors)
                 ? window.config.colors
-                : { primary: '#6571ff', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
+                : { primary: '#28a745', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
 
             const options = {
                 chart: {
@@ -349,7 +349,7 @@
 
             const colors = (window && window.config && window.config.colors)
                 ? window.config.colors
-                : { primary: '#6571ff', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
+                : { primary: '#28a745', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
 
             const options = {
                 chart: {
@@ -397,7 +397,7 @@
 
             const colors = (window && window.config && window.config.colors)
                 ? window.config.colors
-                : { primary: '#6571ff', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
+                : { primary: '#28a745', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
 
             const options = {
                 chart: {
@@ -445,7 +445,7 @@
 
             const colors = (window && window.config && window.config.colors)
                 ? window.config.colors
-                : { primary: '#6571ff', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
+                : { primary: '#28a745', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
 
             const options = {
                 chart: {
@@ -493,7 +493,7 @@
 
             const colors = (window && window.config && window.config.colors)
                 ? window.config.colors
-                : { primary: '#6571ff', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
+                : { primary: '#28a745', secondary: '#7987a1', warning: '#fbbc06', danger: '#ff3366', gridBorder: 'rgba(77, 138, 240, .15)' };
 
             const options = {
                 chart: {

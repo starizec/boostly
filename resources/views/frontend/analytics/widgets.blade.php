@@ -251,7 +251,7 @@
 
             const colors = (window && window.config && window.config.colors) ?
                 window.config.colors : {
-                    primary: '#6571ff',
+                    primary: '#0ea5e9',
                     success: '#00c853',
                     gridBorder: 'rgba(77, 138, 240, .15)'
                 };
@@ -298,7 +298,7 @@
 
             const colors = (window && window.config && window.config.colors) ?
                 window.config.colors : {
-                    primary: '#6571ff',
+                    primary: '#0d6efd',
                     secondary: '#7987a1',
                     warning: '#fbbc06',
                     danger: '#ff3366',
@@ -351,7 +351,7 @@
 
             const colors = (window && window.config && window.config.colors) ?
                 window.config.colors : {
-                    primary: '#6571ff',
+                    primary: '#0ea5e9',
                     secondary: '#7987a1',
                     warning: '#fbbc06',
                     danger: '#ff3366',
@@ -404,7 +404,7 @@
 
             const colors = (window && window.config && window.config.colors) ?
                 window.config.colors : {
-                    primary: '#6571ff',
+                    primary: '#0ea5e9',
                     secondary: '#7987a1',
                     warning: '#fbbc06',
                     danger: '#ff3366',
