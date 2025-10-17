@@ -358,6 +358,7 @@
                     gridBorder: 'rgba(77, 138, 240, .15)'
                 };
 
+                
             const options = {
                 chart: {
                     type: "line",
