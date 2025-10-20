@@ -856,11 +856,14 @@
       });
 
       this.widgetContainer.addEventListener("mouseleave", () => {
-        this.hoverButton.style.opacity = "0";
-        this.hoverButton.style.pointerEvents = "none";
-        this.hoverButton.style.transform = "scale(1)";
-        this.muteButton.style.opacity = "0";
-        this.muteButton.style.pointerEvents = "none";
+        // Keep buttons visible when expanded
+        if (!this.isExpanded) {
+          this.hoverButton.style.opacity = "0";
+          this.hoverButton.style.pointerEvents = "none";
+          this.hoverButton.style.transform = "scale(1)";
+          this.muteButton.style.opacity = "0";
+          this.muteButton.style.pointerEvents = "none";
+        }
       });
 
       // Click event to expand video (only when collapsed)
@@ -873,7 +876,14 @@
       // Add click handler for expand/collapse button
       this.hoverButton.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent widget click event
-        if (this.isExpanded) {
+        
+        // If chat interface is visible, close it
+        if (this.chatInterfaceContainer) {
+          this.hideChatInterface();
+        } else if (this.chatFormContainer) {
+          // If chat form is visible, close it
+          this.hideChatInterface();
+        } else if (this.isExpanded) {
           this.collapseVideo();
         } else {
           this.expandVideo();
@@ -891,6 +901,12 @@
       // Change expand button to collapse button
       this.hoverButton.innerHTML = this.icons.collapse;
       this.hoverButton.style.transform = "rotate(0deg)";
+
+      // Make buttons always visible when expanded
+      this.hoverButton.style.opacity = "1";
+      this.hoverButton.style.pointerEvents = "auto";
+      this.muteButton.style.opacity = "1";
+      this.muteButton.style.pointerEvents = "auto";
 
       // Unmute video when expanded (only if video exists)
       if (this.videoElement) {
@@ -929,6 +945,12 @@
       // Change collapse button back to expand button
       this.hoverButton.innerHTML = this.icons.expand;
       this.hoverButton.style.transform = "rotate(0deg)";
+
+      // Hide buttons when collapsed
+      this.hoverButton.style.opacity = "0";
+      this.hoverButton.style.pointerEvents = "none";
+      this.muteButton.style.opacity = "0";
+      this.muteButton.style.pointerEvents = "none";
 
       // Mute video when collapsed (only if video exists)
       if (this.videoElement) {
@@ -1174,6 +1196,18 @@
         }
         if (this.muteButton) {
           this.muteButton.innerHTML = this.icons.mute; // Muted icon
+          // Hide mute button when chat form is shown (video is hidden)
+          this.muteButton.style.display = "none";
+        }
+
+        // Keep close button visible when chat form is shown
+        if (this.hoverButton) {
+          this.hoverButton.style.opacity = "1";
+          this.hoverButton.style.pointerEvents = "auto";
+          // Change to close icon
+          this.hoverButton.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>`;
         }
 
         // Create and show chat form
@@ -1622,6 +1656,18 @@
       }
       if (this.muteButton) {
         this.muteButton.innerHTML = "🔇"; // Muted icon
+        // Hide mute button when chat interface is shown (video is hidden)
+        this.muteButton.style.display = "none";
+      }
+
+      // Keep close button visible when chat interface is shown
+      if (this.hoverButton) {
+        this.hoverButton.style.opacity = "1";
+        this.hoverButton.style.pointerEvents = "auto";
+        // Change to close icon
+        this.hoverButton.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>`;
       }
 
       // Create chat interface
@@ -2107,6 +2153,29 @@
         this.isMuted = false;
         if (this.muteButton) {
           this.muteButton.innerHTML = this.icons.unmute; // Unmuted icon
+          this.muteButton.style.display = "flex"; // Show mute button again
+        }
+      }
+
+      // Restore buttons to collapsed state
+      if (this.hoverButton) {
+        this.hoverButton.innerHTML = this.icons.collapse;
+        if (this.isExpanded) {
+          // Keep buttons visible when expanded
+          this.hoverButton.style.opacity = "1";
+          this.hoverButton.style.pointerEvents = "auto";
+          if (this.muteButton) {
+            this.muteButton.style.opacity = "1";
+            this.muteButton.style.pointerEvents = "auto";
+          }
+        } else {
+          // Hide buttons when collapsed
+          this.hoverButton.style.opacity = "0";
+          this.hoverButton.style.pointerEvents = "none";
+          if (this.muteButton) {
+            this.muteButton.style.opacity = "0";
+            this.muteButton.style.pointerEvents = "none";
+          }
         }
       }
 
