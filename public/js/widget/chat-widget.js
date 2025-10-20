@@ -1011,11 +1011,18 @@
       this.hoverButton.style.pointerEvents = "none";
       this.muteButton.style.opacity = "0";
       this.muteButton.style.pointerEvents = "none";
+      if (this.widgetCloseButton) {
+        this.widgetCloseButton.style.opacity = "0";
+        this.widgetCloseButton.style.pointerEvents = "none";
+      }
 
       // Mute video when collapsed (only if video exists)
       if (this.videoElement) {
         this.videoElement.muted = true;
         this.isMuted = true;
+      }
+      if (this.muteButton) {
+        this.muteButton.innerHTML = this.icons.mute; // Update to muted icon
       }
 
       // Remove expanded buttons if they exist
@@ -2345,6 +2352,21 @@
     closeWidget() {
       this.isWidgetClosed = true;
       
+      // Collapse widget if expanded and mute video before closing
+      if (this.isExpanded) {
+        this.collapseVideo();
+      }
+      
+      // Ensure video is muted when closed
+      if (this.videoElement) {
+        this.videoElement.muted = true;
+        this.videoElement.pause();
+        this.isMuted = true;
+      }
+      if (this.muteButton) {
+        this.muteButton.innerHTML = this.icons.mute;
+      }
+      
       // Hide the main widget container
       if (this.widgetContainer) {
         this.widgetContainer.style.display = "none";
@@ -2432,9 +2454,23 @@
     reopenWidget() {
       this.isWidgetClosed = false;
       
-      // Show the main widget container
+      // Show the main widget container in collapsed state
       if (this.widgetContainer) {
         this.widgetContainer.style.display = "block";
+        
+        // Make sure widget is collapsed when reopened
+        if (this.isExpanded) {
+          this.collapseVideo();
+        }
+        
+        // Ensure video is muted when reopened
+        if (this.videoElement) {
+          this.videoElement.muted = true;
+          this.isMuted = true;
+        }
+        if (this.muteButton) {
+          this.muteButton.innerHTML = this.icons.mute;
+        }
       }
 
       // Hide reopen button
