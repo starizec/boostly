@@ -2454,22 +2454,28 @@
     reopenWidget() {
       this.isWidgetClosed = false;
       
-      // Show the main widget container in collapsed state
+      // Show the main widget container
       if (this.widgetContainer) {
         this.widgetContainer.style.display = "block";
         
-        // Make sure widget is collapsed when reopened
-        if (this.isExpanded) {
-          this.collapseVideo();
+        // Expand widget to maximized state
+        if (!this.isExpanded) {
+          this.expandVideo();
         }
         
-        // Ensure video is muted when reopened
+        // Autoplay video when reopened
         if (this.videoElement) {
-          this.videoElement.muted = true;
-          this.isMuted = true;
+          this.videoElement.muted = false;
+          this.videoElement.play().catch(error => {
+            console.log("Autoplay failed:", error);
+            // If autoplay fails, keep it muted and try again
+            this.videoElement.muted = true;
+            this.videoElement.play();
+          });
+          this.isMuted = false;
         }
         if (this.muteButton) {
-          this.muteButton.innerHTML = this.icons.mute;
+          this.muteButton.innerHTML = this.icons.unmute;
         }
       }
 
