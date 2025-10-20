@@ -2354,11 +2354,27 @@
       this.createReopenButton();
     }
 
-    // Create small button to reopen widget
+    // Create start button to reopen widget
     createReopenButton() {
       if (this.reopenButton) {
         this.reopenButton.style.display = "flex";
         return;
+      }
+
+      // Get widget styles
+      const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
+      const widgetTextColor = widgetStyles.widget_text_color || "#000000";
+      
+      // Get background style
+      let backgroundStyle;
+      if (widgetStyles.widget_background_type === "gradient" && 
+          widgetStyles.widget_background_color1 && 
+          widgetStyles.widget_background_color2) {
+        backgroundStyle = `linear-gradient(135deg, ${widgetStyles.widget_background_color1} 0%, ${widgetStyles.widget_background_color2} 100%)`;
+      } else {
+        const bgColor = widgetStyles.widget_background_color1 || "#ffffff";
+        backgroundStyle = bgColor;
       }
 
       this.reopenButton = document.createElement("div");
@@ -2366,10 +2382,9 @@
                 position: fixed;
                 bottom: 20px;
                 right: 20px;
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 15px 25px;
+                border-radius: ${widgetBorderRadius}px;
+                background: ${backgroundStyle};
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                 cursor: pointer;
                 transition: all 0.3s ease;
@@ -2377,20 +2392,31 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
-                font-size: 28px;
+                color: ${widgetTextColor};
+                font-size: 16px;
+                font-weight: bold;
+                border: 1px solid rgba(255, 255, 255, 0.2);
             `;
 
-      this.reopenButton.innerHTML = "💬";
+      // Get button text from widget data
+      const buttonText = this.widget && this.widget.button_text 
+        ? this.widget.button_text 
+        : "💬 Start Chat";
+
+      this.reopenButton.innerHTML = `
+                <div style="font-weight: bold; font-size: 16px;">
+                    ${buttonText}
+                </div>
+            `;
 
       // Add hover effect
       this.reopenButton.addEventListener("mouseenter", () => {
-        this.reopenButton.style.transform = "scale(1.1)";
+        this.reopenButton.style.transform = "translateY(-2px)";
         this.reopenButton.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.25)";
       });
 
       this.reopenButton.addEventListener("mouseleave", () => {
-        this.reopenButton.style.transform = "scale(1)";
+        this.reopenButton.style.transform = "translateY(0)";
         this.reopenButton.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
       });
 
