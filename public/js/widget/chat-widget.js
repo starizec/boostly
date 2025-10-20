@@ -1133,7 +1133,7 @@
           });
           
           if (this.widget.widget_action.url) {
-            window.open(this.widget.widget_action.url, "_blank");
+            window.location.href = this.widget.widget_action.url;
           }
         });
 
