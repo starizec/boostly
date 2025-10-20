@@ -20,6 +20,7 @@
       this.currentContact = null; // Store current contact ID
       this.widgetId = null; // Store widget ID
       this.echo = null; // Echo instance for real-time communication
+      this.isWidgetClosed = false; // Track if widget is completely closed
 
       // Icon definitions using Heroicons (16px size)
       this.icons = {
@@ -571,6 +572,9 @@
       // Create hover button (initially hidden)
       this.createHoverButton();
 
+      // Create widget close button (initially hidden)
+      this.createWidgetCloseButton();
+
       // Add hover and click event listeners
       this.addEventListeners();
 
@@ -821,12 +825,12 @@
     }
 
     createHoverButton() {
-      // Create hover button overlay
+      // Create hover button overlay (minimize button)
       this.hoverButton = document.createElement("div");
       this.hoverButton.style.cssText = `
                 position: absolute;
                 top: 10px;
-                right: 10px;
+                right: 50px;
                 padding: 8px;
                 border-radius: 50%;
                 text-align: center;
@@ -851,6 +855,44 @@
       this.widgetContainer.appendChild(this.hoverButton);
     }
 
+    createWidgetCloseButton() {
+      // Create widget close button (X) on the far right
+      this.widgetCloseButton = document.createElement("div");
+      this.widgetCloseButton.style.cssText = `
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                padding: 8px;
+                border-radius: 50%;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                opacity: 0;
+                pointer-events: none;
+                font-weight: bold;
+                color: white;
+                font-size: 20px;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                z-index: 11;
+            `;
+
+      this.widgetCloseButton.innerHTML = this.icons.close;
+
+      // Add click handler to close widget completely
+      this.widgetCloseButton.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent widget click event
+        this.closeWidget();
+      });
+
+      this.widgetContainer.appendChild(this.widgetCloseButton);
+    }
+
     addEventListeners() {
       // Hover events to show/hide buttons
       this.widgetContainer.addEventListener("mouseenter", () => {
@@ -859,6 +901,10 @@
         this.hoverButton.style.transform = "scale(1.1)";
         this.muteButton.style.opacity = "1";
         this.muteButton.style.pointerEvents = "auto";
+        if (this.widgetCloseButton) {
+          this.widgetCloseButton.style.opacity = "1";
+          this.widgetCloseButton.style.pointerEvents = "auto";
+        }
       });
 
       this.widgetContainer.addEventListener("mouseleave", () => {
@@ -869,6 +915,10 @@
           this.hoverButton.style.transform = "scale(1)";
           this.muteButton.style.opacity = "0";
           this.muteButton.style.pointerEvents = "none";
+          if (this.widgetCloseButton) {
+            this.widgetCloseButton.style.opacity = "0";
+            this.widgetCloseButton.style.pointerEvents = "none";
+          }
         }
       });
 
@@ -913,6 +963,10 @@
       this.hoverButton.style.pointerEvents = "auto";
       this.muteButton.style.opacity = "1";
       this.muteButton.style.pointerEvents = "auto";
+      if (this.widgetCloseButton) {
+        this.widgetCloseButton.style.opacity = "1";
+        this.widgetCloseButton.style.pointerEvents = "auto";
+      }
 
       // Unmute video when expanded (only if video exists)
       if (this.videoElement) {
@@ -2287,6 +2341,82 @@
       }
     }
 
+    // Close widget completely
+    closeWidget() {
+      this.isWidgetClosed = true;
+      
+      // Hide the main widget container
+      if (this.widgetContainer) {
+        this.widgetContainer.style.display = "none";
+      }
+
+      // Create and show reopen button
+      this.createReopenButton();
+    }
+
+    // Create small button to reopen widget
+    createReopenButton() {
+      if (this.reopenButton) {
+        this.reopenButton.style.display = "flex";
+        return;
+      }
+
+      this.reopenButton = document.createElement("div");
+      this.reopenButton.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 28px;
+            `;
+
+      this.reopenButton.innerHTML = "💬";
+
+      // Add hover effect
+      this.reopenButton.addEventListener("mouseenter", () => {
+        this.reopenButton.style.transform = "scale(1.1)";
+        this.reopenButton.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.25)";
+      });
+
+      this.reopenButton.addEventListener("mouseleave", () => {
+        this.reopenButton.style.transform = "scale(1)";
+        this.reopenButton.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+      });
+
+      // Add click handler to reopen widget
+      this.reopenButton.addEventListener("click", () => {
+        this.reopenWidget();
+      });
+
+      document.body.appendChild(this.reopenButton);
+    }
+
+    // Reopen widget
+    reopenWidget() {
+      this.isWidgetClosed = false;
+      
+      // Show the main widget container
+      if (this.widgetContainer) {
+        this.widgetContainer.style.display = "block";
+      }
+
+      // Hide reopen button
+      if (this.reopenButton) {
+        this.reopenButton.style.display = "none";
+      }
+    }
+
     // Cleanup method
     destroy() {
       // Clear polling interval
@@ -2304,6 +2434,11 @@
       // Remove widget from DOM
       if (this.widgetContainer) {
         this.widgetContainer.remove();
+      }
+
+      // Remove reopen button from DOM
+      if (this.reopenButton) {
+        this.reopenButton.remove();
       }
     }
   }
