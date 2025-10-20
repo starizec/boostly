@@ -37,6 +37,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L12 12L6 6"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L12 12L18 18"></path>
                 </svg>`,
+        minimize: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                </svg>`,
+        close: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>`,
       };
     }
 
@@ -898,8 +904,8 @@
       this.widgetContainer.style.width = `${expandedWidth}px`;
       this.widgetContainer.style.height = `${expandedHeight}px`;
 
-      // Change expand button to collapse button
-      this.hoverButton.innerHTML = this.icons.collapse;
+      // Change expand button to minimize button
+      this.hoverButton.innerHTML = this.icons.minimize;
       this.hoverButton.style.transform = "rotate(0deg)";
 
       // Make buttons always visible when expanded
@@ -1205,9 +1211,7 @@
           this.hoverButton.style.opacity = "1";
           this.hoverButton.style.pointerEvents = "auto";
           // Change to close icon
-          this.hoverButton.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>`;
+          this.hoverButton.innerHTML = this.icons.close;
         }
 
         // Create and show chat form
@@ -1665,9 +1669,7 @@
         this.hoverButton.style.opacity = "1";
         this.hoverButton.style.pointerEvents = "auto";
         // Change to close icon
-        this.hoverButton.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>`;
+        this.hoverButton.innerHTML = this.icons.close;
       }
 
       // Create chat interface
@@ -2157,10 +2159,11 @@
         }
       }
 
-      // Restore buttons to collapsed state
+      // Restore buttons to appropriate state
       if (this.hoverButton) {
-        this.hoverButton.innerHTML = this.icons.collapse;
         if (this.isExpanded) {
+          // Use minimize icon when expanded
+          this.hoverButton.innerHTML = this.icons.minimize;
           // Keep buttons visible when expanded
           this.hoverButton.style.opacity = "1";
           this.hoverButton.style.pointerEvents = "auto";
@@ -2169,6 +2172,8 @@
             this.muteButton.style.pointerEvents = "auto";
           }
         } else {
+          // Use expand icon when collapsed
+          this.hoverButton.innerHTML = this.icons.expand;
           // Hide buttons when collapsed
           this.hoverButton.style.opacity = "0";
           this.hoverButton.style.pointerEvents = "none";
