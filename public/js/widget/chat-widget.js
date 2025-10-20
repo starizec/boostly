@@ -3,7 +3,8 @@
 
   class ChatWidget {
     constructor() {
-      this.host = "https://app.meetboostly.com";
+      //this.host = "https://app.meetboostly.com";
+      this.host = "http://localhost:8000";
       this.scriptTag = document.currentScript;
       this.clientDomain = `${window.location.protocol}//${window.location.host}`;
       this.clientUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
@@ -660,7 +661,7 @@
         this.showChatForm();
       });
 
-      this.widgetContainer.appendChild(this.chatButton);
+      //this.widgetContainer.appendChild(this.chatButton);
 
       // Add to page
       document.body.appendChild(this.widgetContainer);
@@ -1107,7 +1108,7 @@
         this.showChatForm();
       });
 
-      this.expandedButtonsContainer.appendChild(this.startChatButton);
+      //this.expandedButtonsContainer.appendChild(this.startChatButton);
       this.widgetContainer.appendChild(this.expandedButtonsContainer);
     }
 
@@ -2174,7 +2175,7 @@
         this.toggleChat();
       });
 
-      this.widgetContainer.appendChild(this.chatButton);
+      //this.widgetContainer.appendChild(this.chatButton);
     }
 
     toggleChat() {
