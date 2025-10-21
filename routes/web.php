@@ -4,12 +4,24 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Frontend\AnalyticsController as FrontendAnalyticsController;
+use App\Http\Controllers\Frontend\LoginController;
 
-Route::get('/', [FrontendAnalyticsController::class, 'index'])->name('analytics.index');
-Route::get('/analytics/widgets', [FrontendAnalyticsController::class, 'widgets'])->name('analytics.widgets');
-Route::get('/analytics/widget/{widgetId}', [FrontendAnalyticsController::class, 'widget'])->name('analytics.widget');
-Route::get('/analytics/actions', [FrontendAnalyticsController::class, 'actions'])->name('analytics.actions');
-Route::get('/analytics/action/{actionId}', [FrontendAnalyticsController::class, 'action'])->name('analytics.action');
+// Authentication Routes
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/auth/login', [LoginController::class, 'login']);
+});
+
+Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Analytics Dashboard Routes (Protected)
+Route::middleware('auth')->group(function () {
+    Route::get('/', [FrontendAnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/widgets', [FrontendAnalyticsController::class, 'widgets'])->name('analytics.widgets');
+    Route::get('/analytics/widget/{widgetId}', [FrontendAnalyticsController::class, 'widget'])->name('analytics.widget');
+    Route::get('/analytics/actions', [FrontendAnalyticsController::class, 'actions'])->name('analytics.actions');
+    Route::get('/analytics/action/{actionId}', [FrontendAnalyticsController::class, 'action'])->name('analytics.action');
+});
 
 Route::post('/verify', [ChatController::class, 'verifyDomain'])->middleware('cors')->name('verify.domain');
 

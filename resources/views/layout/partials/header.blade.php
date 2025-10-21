@@ -39,8 +39,8 @@
               <img class="w-80px h-80px rounded-circle" src="{{ url('https://placehold.co/80x80') }}" alt="">
             </div>
             <div class="text-center">
-              <p class="fs-16px fw-bolder">Amiah Burton</p>
-              <p class="fs-12px text-secondary">amiahburton@gmail.com</p>
+              <p class="fs-16px fw-bolder">{{ Auth::user()->name }}</p>
+              <p class="fs-12px text-secondary">{{ Auth::user()->email }}</p>
             </div>
           </div>
           <ul class="list-unstyled p-1">
@@ -63,10 +63,15 @@
               </a>
             </li>
             <li>
-              <a href="javascript:;" class="dropdown-item py-2 text-body ms-0">
+              <a href="javascript:;" 
+                 class="dropdown-item py-2 text-body ms-0" 
+                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 <i class="me-2 icon-md" data-lucide="log-out"></i>
                 <span>Log Out</span>
               </a>
+              <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                @csrf
+              </form>
             </li>
           </ul>
         </div>
