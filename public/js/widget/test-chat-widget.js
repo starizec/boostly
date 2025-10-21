@@ -3,8 +3,8 @@
 
   class ChatWidget {
     constructor() {
-      this.host = "https://app.meetboostly.com";
-      //this.host = "http://localhost:8000";
+      //this.host = "https://app.meetboostly.com";
+      this.host = "http://localhost:8000";
       this.scriptTag = document.currentScript;
       this.clientDomain = `${window.location.protocol}//${window.location.host}`;
       this.clientUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
