@@ -91,7 +91,7 @@ class ChatController extends Controller
                 'message' => 'Domain not found in authorized domains list'
             ], 403);
         }
-
+        Log::info('Request: ' . json_encode($request->all()));
         // Check if client_url matches any conversion URL and track conversion
         $this->checkAndTrackConversion($request);
 
@@ -432,10 +432,16 @@ class ChatController extends Controller
      */
     private function checkAndTrackConversion(Request $request): void
     {
+        Log::info('Checking and tracking conversion for URL: ' . $this->clientUrl);
+        Log::info('Checking and tracking conversion for URL: ' . $request);
         try {
-            // Check if the client URL matches any conversion URL
-            $conversionUrl = ConversionUrl::where('url', $this->clientUrl)->first();
-            
+            // Check if the client URL begins with any conversion URL (take the latest match)
+            $conversionUrl = ConversionUrl::orderBy('created_at', 'desc')
+                ->get()
+                ->first(function ($url) {
+                    return str_starts_with($this->clientUrl, $url->url);
+                });
+            Log::info('Conversion URL: ' . $conversionUrl);
             if ($conversionUrl) {
                 // Get widget ID from request
                 $widgetId = $request->input('bw_id');
