@@ -51,3 +51,8 @@ Route::prefix('api/analytics')->middleware('cors')->group(function () {
     //Route::get('/widget/{widgetId}', [AnalyticsController::class, 'getWidgetAnalytics'])->name('analytics.widget');
     Route::get('/widget/{widgetId}/summary', [AnalyticsController::class, 'getWidgetAnalyticsSummary'])->name('analytics.widget.summary');
 });
+
+// Temporary route for React verification
+Route::get('/react-test', function () {
+    return view('react-test');
+});

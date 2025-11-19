@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import react from '@vitejs/plugin-react';
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 // import { rtlcssPlugin } from './vite-rtlcss-plugin'
 
@@ -14,6 +15,7 @@ export default defineConfig({
                 'resources/rtl-css/app-rtl.css',
                 'resources/rtl-css/custom-rtl.css',
                 'resources/js/app.js',
+                'resources/js/react-app.jsx',
                 'resources/js/pages/template.js',
                 'resources/js/pages/ace.js',
                 'resources/js/pages/apexcharts.js',
@@ -51,6 +53,7 @@ export default defineConfig({
             ],
             refresh: true,
         }),
+        react(),
         // rtlcssPlugin(),
         vue({
             template: {
@@ -228,5 +231,10 @@ export default defineConfig({
                 silenceDeprecations: ['mixed-decls', 'color-functions', 'global-builtin', 'import'],
             }
         }
+    },
+    resolve: {
+        alias: {
+            '@': '/resources/js',
+        },
     },
 });
