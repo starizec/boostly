@@ -65,9 +65,14 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public function mount(): void
     {
         // Select the first active chat by default
-        $this->selectedChat = Chat::with(['contact', 'messages' => function ($query) {
-            $query->with('agent')->orderBy('created_at', 'asc');
-        }, 'status', 'tags'])->active()->latest('last_message_at')->first();
+        $this->selectedChat = Chat::query()
+            ->accessibleBy()
+            ->with(['contact', 'messages' => function ($query) {
+                $query->with('agent')->orderBy('created_at', 'asc');
+            }, 'status', 'tags'])
+            ->active()
+            ->latest('last_message_at')
+            ->first();
         
         // Initialize editingNote with current note value if chat is selected
         if ($this->selectedChat) {
@@ -83,6 +88,11 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
 
     public function refreshChats(): void
     {
+        if ($this->selectedChat && ! Chat::query()->accessibleBy()->where('id', $this->selectedChat->id)->exists()) {
+            $this->selectedChat = null;
+            return;
+        }
+
         // This method will be called periodically to refresh the chat list
         if ($this->selectedChat) {
             $this->selectedChat = $this->selectedChat->fresh(['contact', 'messages' => function ($query) {
@@ -331,6 +341,10 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
 
     public function selectChat(Chat $chat): void
     {
+        if (! Chat::query()->accessibleBy()->where('id', $chat->id)->exists()) {
+            return;
+        }
+
         $this->isLoading = true;
         
         // Reset note editing state if selecting a different chat
@@ -409,6 +423,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
         return $table
             ->query(
                 Chat::query()
+                    ->accessibleBy()
                     ->with(['contact', 'latestMessage', 'tags'])
                     ->when($this->statusFilter, function (Builder $query, string $status) {
                         $query->where('status', $status);
@@ -476,6 +491,7 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     public function getFilteredChats()
     {
         return Chat::query()
+            ->accessibleBy()
             ->with(['contact', 'latestMessage', 'status', 'tags'])
             ->withCount(['messages as unread_count' => function (Builder $query) {
                 $query->where('type', '!=', 'agent')->where('is_read', false);

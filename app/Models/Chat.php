@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -73,6 +74,21 @@ class Chat extends Model
     public function meta(): HasOne
     {
         return $this->hasOne(ChatMeta::class);
+    }
+
+    /**
+     * Scope chats to those belonging to widgets owned by the given user.
+     * Admins see all chats.
+     */
+    public function scopeAccessibleBy(Builder $query, ?User $user = null): Builder
+    {
+        $user ??= auth()->user();
+
+        if (! $user instanceof User || $user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->whereHas('widget', fn (Builder $query) => $query->where('user_id', $user->id));
     }
 
     /**
