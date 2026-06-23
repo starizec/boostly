@@ -1,5 +1,6 @@
 @php
-    $isEdit = isset($widget);
+    $widget = $widget ?? null;
+    $isEdit = $widget !== null;
     $formAction = $isEdit ? route('widgets.update', $widget) : route('widgets.store');
     $formMethod = $isEdit ? 'PUT' : 'POST';
 
