@@ -22,9 +22,9 @@ class StatusResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Postavke widgeta';
+    protected static ?string $navigationGroup = 'Widget';
 
-    protected static ?string $navigationLabel = 'Statusi';
+    protected static ?string $navigationLabel = 'Statuses';
 
     protected static ?int $navigationSort = 3;
 

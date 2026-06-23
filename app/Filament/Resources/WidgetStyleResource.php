@@ -21,7 +21,7 @@ class WidgetStyleResource extends Resource
     use AuthorizesByRole;
 
     protected static ?string $model = WidgetStyle::class;
-    protected static ?string $navigationGroup = 'Postavke widgeta';
+    protected static ?string $navigationGroup = 'Widget';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationBadge(): ?string

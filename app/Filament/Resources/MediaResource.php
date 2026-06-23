@@ -23,7 +23,7 @@ class MediaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-video-camera';
 
-    protected static ?string $navigationGroup = 'Postavke';
+    protected static ?string $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {

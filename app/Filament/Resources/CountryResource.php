@@ -20,7 +20,7 @@ class CountryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
-    protected static ?string $navigationGroup = 'Postavke';
+    protected static ?string $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 1;
 

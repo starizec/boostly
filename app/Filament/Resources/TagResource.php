@@ -31,9 +31,9 @@ class TagResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Postavke widgeta';
+    protected static ?string $navigationGroup = 'Widget';
 
-    protected static ?string $navigationLabel = 'Oznake';
+    protected static ?string $navigationLabel = 'Tags';
 
     protected static ?int $navigationSort = 4;
 

@@ -21,7 +21,7 @@ class WidgetActionResource extends Resource
     use AuthorizesByRole;
 
     protected static ?string $model = WidgetAction::class;
-    protected static ?string $navigationGroup = 'Postavke widgeta';
+    protected static ?string $navigationGroup = 'Widget';
     protected static ?string $navigationIcon = 'heroicon-o-cursor-arrow-rays';
 
     public static function getNavigationBadge(): ?string

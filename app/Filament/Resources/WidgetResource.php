@@ -19,9 +19,10 @@ class WidgetResource extends Resource
     use AuthorizesByRole;
 
     protected static ?string $model = Widget::class;
-    protected static ?string $navigationGroup = 'Postavke widgeta';
+    protected static ?string $navigationGroup = 'Widget';
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
-    protected static ?string $navigationLabel = 'Widgeti';
+    protected static ?string $navigationLabel = 'Widget';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
