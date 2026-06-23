@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\SettingsResource\Pages;
 use App\Filament\Resources\SettingsResource\RelationManagers;
 use App\Models\Settings;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SettingsResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Settings::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

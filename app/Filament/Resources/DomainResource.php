@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\DomainResource\Pages;
 use App\Filament\Resources\DomainResource\RelationManagers;
 use App\Models\Domain;
@@ -16,6 +17,8 @@ use Illuminate\Support\Str;
 
 class DomainResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Domain::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';

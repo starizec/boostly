@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\ConversionUrlResource\Pages;
 use App\Models\ConversionUrl;
 use Filament\Forms;
@@ -12,6 +13,8 @@ use Filament\Tables\Table;
 
 class ConversionUrlResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = ConversionUrl::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-link';

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Authorization\ResourceAccess;
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\ChatResource\Pages;
 use App\Filament\Resources\ChatResource\RelationManagers;
 use App\Models\Chat;
@@ -23,6 +25,8 @@ use App\Events\MessageSent;
 
 class ChatResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Chat::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
@@ -31,14 +35,26 @@ class ChatResource extends Resource
 
     public static function getNavigationItems(): array
     {
-        return [
-            ...parent::getNavigationItems(),
-            \Filament\Navigation\NavigationItem::make('Chat Interface')
+        $items = [];
+
+        if (ResourceAccess::canAccessChatList()) {
+            $items = parent::getNavigationItems();
+        }
+
+        if (ResourceAccess::canAccessChatInterface()) {
+            $items[] = \Filament\Navigation\NavigationItem::make('Chat Interface')
                 ->url(static::getUrl('chat-interface'))
                 ->icon('heroicon-o-chat-bubble-left-right')
                 ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.resources.chats.chat-interface'))
-                ->sort(1),
-        ];
+                ->sort(1);
+        }
+
+        return $items;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return ResourceAccess::canAccessChatList() || ResourceAccess::canAccessChatInterface();
     }
 
     public static function form(Form $form): Form

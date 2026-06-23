@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ChatResource\Pages;
 
+use App\Filament\Authorization\ResourceAccess;
 use App\Filament\Resources\ChatResource;
 use Filament\Resources\Pages\Page;
 use Filament\Forms\Components\Textarea;
@@ -41,6 +42,11 @@ class ChatInterface extends Page implements HasForms, HasActions, HasTable
     protected static string $resource = ChatResource::class;
 
     protected static string $view = 'filament.resources.chat-resource.pages.chat-interface';
+
+    public static function canAccess(array $parameters = []): bool
+    {
+        return ResourceAccess::canAccessChatInterface();
+    }
 
     public ?Chat $selectedChat = null;
     public ?string $message = null;

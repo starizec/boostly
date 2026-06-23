@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetResource\Pages;
 use App\Models\Widget;
 use Filament\Forms;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class WidgetResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Widget::class;
     protected static ?string $navigationGroup = 'Postavke widgeta';
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';

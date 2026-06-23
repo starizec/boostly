@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\AnalyticsResource\Pages;
 use App\Filament\Resources\AnalyticsResource\RelationManagers;
 use App\Models\Analytics;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AnalyticsResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Analytics::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';

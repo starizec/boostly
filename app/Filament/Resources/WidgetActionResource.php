@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetActionResource\Pages;
 use App\Filament\Resources\WidgetActionResource\RelationManagers;
 use App\Models\WidgetAction;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 class WidgetActionResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = WidgetAction::class;
     protected static ?string $navigationGroup = 'Postavke widgeta';
     protected static ?string $navigationIcon = 'heroicon-o-cursor-arrow-rays';

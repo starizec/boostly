@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\MediaResource\Pages;
 use App\Filament\Resources\MediaResource\RelationManagers;
 use App\Models\Media;
@@ -16,6 +17,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MediaResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Media::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-video-camera';

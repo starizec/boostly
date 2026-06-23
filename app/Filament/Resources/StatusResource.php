@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\StatusResource\Pages;
 use App\Filament\Resources\StatusResource\RelationManagers;
 use App\Models\Status;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class StatusResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = Status::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetStyleResource\Pages;
 use App\Filament\Resources\WidgetStyleResource\RelationManagers;
 use App\Models\WidgetStyle;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class WidgetStyleResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = WidgetStyle::class;
     protected static ?string $navigationGroup = 'Postavke widgeta';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

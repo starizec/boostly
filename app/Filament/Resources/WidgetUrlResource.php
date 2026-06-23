@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetUrlResource\Pages;
 use App\Filament\Resources\WidgetUrlResource\RelationManagers;
 use App\Models\WidgetUrl;
@@ -22,6 +23,8 @@ use Filament\Tables\Filters\Filter;
 
 class WidgetUrlResource extends Resource
 {
+    use AuthorizesByRole;
+
     protected static ?string $model = WidgetUrl::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-link';
