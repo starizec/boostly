@@ -25,22 +25,34 @@
         </a>
       </li>
       <li class="nav-item nav-category">Widgeti</li>
-      <li class="nav-item {{ active_class(['widgets']) }}">
+      <li class="nav-item {{ active_class(['widgets', 'widgets/*/edit']) }}">
         <a href="{{ url('/widgets') }}" class="nav-link">
           <i class="link-icon" data-lucide="trello"></i>
           <span class="link-title">Svi widgeti</span>
         </a>
       </li>
       <li class="nav-item {{ active_class(['widgets/create']) }}">
-        <a href="{{ url('/widgets/create') }}" class="nav-link">
+        <a href="{{ route('widgets.create') }}" class="nav-link">
+          <i class="link-icon" data-lucide="plus-circle"></i>
+          <span class="link-title">Kreiraj widget</span>
+        </a>
+      </li>
+      <li class="nav-item {{ active_class(['widgets/create']) }}">
+        <a href="{{ route('widgets.create', ['tab' => 'akcije']) }}" class="nav-link">
           <i class="link-icon" data-lucide="mouse-pointer-2"></i>
           <span class="link-title">Akcije</span>
         </a>
       </li>
       <li class="nav-item {{ active_class(['widgets/create']) }}">
-        <a href="{{ url('/widgets/create') }}" class="nav-link">
+        <a href="{{ route('widgets.create', ['tab' => 'mediji']) }}" class="nav-link">
           <i class="link-icon" data-lucide="image"></i>
           <span class="link-title">Mediji</span>
+        </a>
+      </li>
+      <li class="nav-item {{ active_class(['widgets/create']) }}">
+        <a href="{{ route('widgets.create', ['tab' => 'stilovi']) }}" class="nav-link">
+          <i class="link-icon" data-lucide="palette"></i>
+          <span class="link-title">Stilovi</span>
         </a>
       </li>
     </ul>

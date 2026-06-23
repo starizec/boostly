@@ -5,6 +5,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Frontend\AnalyticsController as FrontendAnalyticsController;
 use App\Http\Controllers\Frontend\LoginController;
+use App\Http\Controllers\Frontend\WidgetController;
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -21,6 +22,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/analytics/widget/{widgetId}', [FrontendAnalyticsController::class, 'widget'])->name('analytics.widget');
     Route::get('/analytics/actions', [FrontendAnalyticsController::class, 'actions'])->name('analytics.actions');
     Route::get('/analytics/action/{actionId}', [FrontendAnalyticsController::class, 'action'])->name('analytics.action');
+
+    Route::get('/widgets', [WidgetController::class, 'index'])->name('widgets.index');
+    Route::get('/widgets/create', [WidgetController::class, 'create'])->name('widgets.create');
+    Route::post('/widgets', [WidgetController::class, 'store'])->name('widgets.store');
+    Route::get('/widgets/{widget}/edit', [WidgetController::class, 'edit'])->name('widgets.edit');
+    Route::put('/widgets/{widget}', [WidgetController::class, 'update'])->name('widgets.update');
+    Route::delete('/widgets/{widget}', [WidgetController::class, 'destroy'])->name('widgets.destroy');
 });
 
 Route::post('/verify', [ChatController::class, 'verifyDomain'])->middleware('cors')->name('verify.domain');
