@@ -24,12 +24,25 @@
           <span class="link-title">Widgeti</span>
         </a>
       </li>
-     {{--  <li class="nav-item {{ active_class(['analytics/actions']) }}">
-        <a href="{{ url('/analytics/actions') }}" class="nav-link">
-          <i class="link-icon" data-lucide="activity"></i>
+      <li class="nav-item nav-category">Widgeti</li>
+      <li class="nav-item {{ active_class(['widgets']) }}">
+        <a href="{{ url('/widgets') }}" class="nav-link">
+          <i class="link-icon" data-lucide="trello"></i>
+          <span class="link-title">Svi widgeti</span>
+        </a>
+      </li>
+      <li class="nav-item {{ active_class(['widgets/create']) }}">
+        <a href="{{ url('/widgets/create') }}" class="nav-link">
+          <i class="link-icon" data-lucide="mouse-pointer-2"></i>
           <span class="link-title">Akcije</span>
         </a>
-      </li> --}}
+      </li>
+      <li class="nav-item {{ active_class(['widgets/create']) }}">
+        <a href="{{ url('/widgets/create') }}" class="nav-link">
+          <i class="link-icon" data-lucide="image"></i>
+          <span class="link-title">Mediji</span>
+        </a>
+      </li>
     </ul>
   </div>
 </nav>
