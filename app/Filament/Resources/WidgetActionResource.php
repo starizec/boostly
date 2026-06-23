@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetActionResource\Pages;
 use App\Filament\Resources\WidgetActionResource\RelationManagers;
+use App\Models\User;
 use App\Models\WidgetAction;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -25,7 +26,7 @@ class WidgetActionResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        return (string) static::getEloquentQuery()->count();
     }
 
     public static function form(Form $form): Form
@@ -94,5 +95,18 @@ class WidgetActionResource extends Resource
             'create' => Pages\CreateWidgetAction::route('/create'),
             'edit' => Pages\EditWidgetAction::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user instanceof User && ! $user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query;
     }
 }

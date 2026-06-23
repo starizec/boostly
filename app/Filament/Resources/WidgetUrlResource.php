@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetUrlResource\Pages;
 use App\Filament\Resources\WidgetUrlResource\RelationManagers;
+use App\Models\User;
 use App\Models\WidgetUrl;
 use App\Models\Widget;
 use Filament\Forms;
@@ -20,6 +21,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
 
 class WidgetUrlResource extends Resource
 {
@@ -39,7 +41,7 @@ class WidgetUrlResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        return (string) static::getEloquentQuery()->count();
     }
 
     public static function form(Form $form): Form
@@ -50,7 +52,7 @@ class WidgetUrlResource extends Resource
                     ->schema([
                         Select::make('widget_id')
                             ->label('Widget')
-                            ->options(Widget::pluck('name', 'id'))
+                            ->options(fn (): array => static::scopedWidgetOptions())
                             ->required()
                             ->searchable()
                             ->preload()
@@ -105,7 +107,7 @@ class WidgetUrlResource extends Resource
             ->filters([
                 SelectFilter::make('widget_id')
                     ->label('Widget')
-                    ->options(Widget::pluck('name', 'id'))
+                    ->options(fn (): array => static::scopedWidgetOptions())
                     ->searchable()
                     ->preload(),
 
@@ -158,7 +160,30 @@ class WidgetUrlResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->with(['widget']);
+
+        $user = Auth::user();
+
+        if ($user instanceof User && ! $user->hasRole('admin')) {
+            $query->whereHas('widget', fn (Builder $widgetQuery): Builder => $widgetQuery->where('user_id', $user->id));
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected static function scopedWidgetOptions(): array
+    {
+        $query = Widget::query()->orderBy('name');
+        $user = Auth::user();
+
+        if ($user instanceof User && ! $user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query->pluck('name', 'id')->all();
     }
 }

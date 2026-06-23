@@ -167,13 +167,6 @@ class ChatController extends Controller
                 $name = explode('@', $request->email)[0];
             }
             
-            // Create contact
-            $contact = Contact::create([
-                'name' => $name,
-                'email' => $request->email ?? null,
-                'phone' => $request->phone ?? null,
-            ]);
-
             // Get the widget to find the company
             $widget = Widget::with('user')->find($request->bw_id);
             if (!$widget) {
@@ -182,6 +175,14 @@ class ChatController extends Controller
                     'message' => 'Widget not found'
                 ], 404);
             }
+
+            // Create contact
+            $contact = Contact::create([
+                'user_id' => $widget->user_id,
+                'name' => $name,
+                'email' => $request->email ?? null,
+                'phone' => $request->phone ?? null,
+            ]);
             
             $companyId = $widget->user->company_id;
             

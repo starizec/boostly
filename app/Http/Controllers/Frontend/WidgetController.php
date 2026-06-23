@@ -166,6 +166,8 @@ class WidgetController extends Controller
             $data['widget_background_url'] = null;
         }
 
+        $data['user_id'] = Auth::id();
+
         return WidgetStyle::create($data)->id;
     }
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\WidgetStyleResource\Pages;
 use App\Filament\Resources\WidgetStyleResource\RelationManagers;
+use App\Models\User;
 use App\Models\WidgetStyle;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class WidgetStyleResource extends Resource
 {
@@ -24,13 +26,15 @@ class WidgetStyleResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        return (string) static::getEloquentQuery()->count();
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\Hidden::make('user_id')
+                    ->default(fn (): ?int => Auth::id()),
                 Forms\Components\Section::make('Start Button Styles')
                     ->schema([
                         Forms\Components\TextInput::make('start_button_border_radius')
@@ -191,5 +195,18 @@ class WidgetStyleResource extends Resource
             'create' => Pages\CreateWidgetStyle::route('/create'),
             'edit' => Pages\EditWidgetStyle::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user instanceof User && ! $user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query;
     }
 }

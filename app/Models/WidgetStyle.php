@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WidgetStyle extends Model
 {
     protected $fillable = [
+        'user_id',
+
         // Start Button Styles
         'start_button_border_radius',
         'start_button_background_color',
@@ -58,4 +62,14 @@ class WidgetStyle extends Model
         'chat_footer_text_color',
         'chat_footer_background_image',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function widgets(): HasMany
+    {
+        return $this->hasMany(Widget::class, 'style_id');
+    }
 }

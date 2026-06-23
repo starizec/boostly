@@ -175,7 +175,17 @@ class WidgetResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('action_id')
                             ->label('Akcija')
-                            ->relationship('widgetAction', 'name')
+                            ->relationship(
+                                'widgetAction',
+                                'name',
+                                modifyQueryUsing: function (Builder $query): void {
+                                    $user = Auth::user();
+
+                                    if ($user instanceof User && ! $user->hasRole('admin')) {
+                                        $query->where('user_id', $user->id);
+                                    }
+                                },
+                            )
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
@@ -244,7 +254,17 @@ class WidgetResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('style_id')
                             ->label('Stil')
-                            ->relationship('style', 'id')
+                            ->relationship(
+                                'style',
+                                'id',
+                                modifyQueryUsing: function (Builder $query): void {
+                                    $user = Auth::user();
+
+                                    if ($user instanceof User && ! $user->hasRole('admin')) {
+                                        $query->where('user_id', $user->id);
+                                    }
+                                },
+                            )
                             ->getOptionLabelFromRecordUsing(fn($record) => "Stil #{$record->id}")
                             ->searchable()
                             ->preload()
@@ -350,7 +370,9 @@ class WidgetResource extends Resource
                                     ]),
                             ])
                             ->createOptionUsing(function (array $data): int {
+                                $data['user_id'] = Auth::id();
                                 $style = \App\Models\WidgetStyle::create($data);
+
                                 return $style->id;
                             }),
                     ]),

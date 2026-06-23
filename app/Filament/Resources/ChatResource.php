@@ -62,7 +62,14 @@ class ChatResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('contact_id')
-                    ->relationship('contact', 'name')
+                    ->relationship(
+                        'contact',
+                        'name',
+                        fn (Builder $query) => $query->when(
+                            auth()->user() && ! auth()->user()->hasRole('admin'),
+                            fn (Builder $query) => $query->where('user_id', auth()->id())
+                        )
+                    )
                     ->required(),
                 Forms\Components\Select::make('status')
                     ->options([
