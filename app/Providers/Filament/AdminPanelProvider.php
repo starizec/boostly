@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\ChatResource;
 use Filament\Panel;
@@ -28,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('/boostadmin')
             ->login()
+            ->registration(Register::class)
             ->defaultThemeMode(ThemeMode::Light)
             ->darkMode(false)
             ->colors([
