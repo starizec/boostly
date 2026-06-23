@@ -4,15 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\AuthorizesByRole;
 use App\Filament\Resources\AnalyticsResource\Pages;
-use App\Filament\Resources\AnalyticsResource\RelationManagers;
 use App\Models\Analytics;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class AnalyticsResource extends Resource
 {
@@ -38,7 +38,17 @@ class AnalyticsResource extends Resource
             ->schema([
                 Forms\Components\Select::make('widget_id')
                     ->label('Widget')
-                    ->relationship('widget', 'name')
+                    ->relationship(
+                        'widget',
+                        'name',
+                        modifyQueryUsing: function (Builder $query): void {
+                            $user = Auth::user();
+
+                            if ($user instanceof User && ! $user->isAdmin()) {
+                                $query->where('user_id', $user->id);
+                            }
+                        },
+                    )
                     ->searchable()
                     ->preload()
                     ->required()
@@ -89,6 +99,12 @@ class AnalyticsResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->limit(30),
+
+                Tables\Columns\TextColumn::make('widget.user.name')
+                    ->label('Korisnik')
+                    ->sortable()
+                    ->toggleable()
+                    ->visible(fn (): bool => Auth::user()?->isAdmin() ?? false),
 
                 Tables\Columns\BadgeColumn::make('event')
                     ->label('Event Type')
@@ -166,7 +182,17 @@ class AnalyticsResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('widget_id')
                     ->label('Widget')
-                    ->relationship('widget', 'name')
+                    ->relationship(
+                        'widget',
+                        'name',
+                        modifyQueryUsing: function (Builder $query): void {
+                            $user = Auth::user();
+
+                            if ($user instanceof User && ! $user->isAdmin()) {
+                                $query->where('user_id', $user->id);
+                            }
+                        },
+                    )
                     ->searchable()
                     ->preload(),
 
@@ -202,12 +228,15 @@ class AnalyticsResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Analytics $record): bool => static::canEdit($record)),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (Analytics $record): bool => static::canDelete($record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn (): bool => Auth::user()?->isAdmin() ?? false),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -223,10 +252,39 @@ class AnalyticsResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAnalytics::route('/'),
+            'index' => Pages\AnalyticsDashboard::route('/'),
+            'events' => Pages\ListAnalytics::route('/events'),
             'create' => Pages\CreateAnalytics::route('/create'),
             'view' => Pages\ViewAnalytics::route('/{record}'),
             'edit' => Pages\EditAnalytics::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        if ($user instanceof User && ! $user->isAdmin()) {
+            $query->whereHas('widget', fn (Builder $widgetQuery): Builder => $widgetQuery->where('user_id', $user->id));
+        }
+
+        return $query;
+    }
+
+    public static function canCreate(): bool
+    {
+        return Auth::user()?->isAdmin() ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return Auth::user()?->isAdmin() ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return Auth::user()?->isAdmin() ?? false;
     }
 }

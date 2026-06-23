@@ -13,7 +13,8 @@ class ViewAnalytics extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            Actions\EditAction::make()
+                ->visible(fn (): bool => AnalyticsResource::canEdit($this->record)),
         ];
     }
 }

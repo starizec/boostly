@@ -10,10 +10,19 @@ class ListAnalytics extends ListRecords
 {
     protected static string $resource = AnalyticsResource::class;
 
+    protected static ?string $navigationLabel = 'Događaji';
+
+    protected static ?string $title = 'Analitički događaji';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\Action::make('dashboard')
+                ->label('Pregled')
+                ->icon('heroicon-o-chart-bar')
+                ->url(AnalyticsResource::getUrl('index')),
+            Actions\CreateAction::make()
+                ->visible(fn (): bool => AnalyticsResource::canCreate()),
         ];
     }
 }

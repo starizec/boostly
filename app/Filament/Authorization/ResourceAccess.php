@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Authorization;
 
+use App\Filament\Resources\AnalyticsResource;
 use App\Filament\Resources\ChatResource;
 use App\Filament\Resources\ContactResource;
 use App\Filament\Resources\ConversionUrlResource;
@@ -22,6 +23,7 @@ class ResourceAccess
      * Filament resources visible to users with the "user" role.
      */
     private const USER_ALLOWED_RESOURCES = [
+        AnalyticsResource::class,
         WidgetResource::class,
         WidgetActionResource::class,
         WidgetStyleResource::class,
