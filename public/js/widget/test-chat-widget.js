@@ -1,51 +1,450 @@
 (function () {
   "use strict";
 
+  const STORAGE_KEYS = {
+    CHAT_ID: "bc_id",
+    WIDGET_ID: "bw_id",
+  };
+
+  const WIDGET_ID = "boostly-chat-widget";
+  const DEFAULT_HOST = "http://localhost:8000";
+  const FALLBACK_AUDIO =
+    "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT";
+
+  const ICONS = {
+    mute: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+    </svg>`,
+    unmute: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+    </svg>`,
+    expand: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+    </svg>`,
+    collapse: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L12 12L6 6"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L12 12L18 18"></path>
+    </svg>`,
+    minimize: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+    </svg>`,
+    close: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>`,
+  };
+
+  function resolveHost(scriptTag, fallback) {
+    if (scriptTag && scriptTag.dataset && scriptTag.dataset.host) {
+      return scriptTag.dataset.host;
+    }
+
+    if (scriptTag && scriptTag.src) {
+      try {
+        return new URL(scriptTag.src).origin;
+      } catch (error) {
+        // Ignore invalid script URLs.
+      }
+    }
+
+    return fallback;
+  }
+
+  function parsePx(value, fallback) {
+    if (!value) {
+      return fallback;
+    }
+
+    const parsed = parseInt(String(value).replace("px", ""), 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
+
+  function isExternalUrl(path) {
+    return path.indexOf("http://") === 0 || path.indexOf("https://") === 0;
+  }
+
+  function resolveAssetUrl(host, assetPath) {
+    if (!assetPath) {
+      return null;
+    }
+
+    return isExternalUrl(assetPath) ? assetPath : host + "/storage/" + assetPath;
+  }
+
+  function resolveBackgroundStyle(host, styles, options) {
+    options = options || {};
+    const colorKey = options.colorKey || "widget_background_color_1";
+    const color2Key = options.color2Key || "widget_background_color_2";
+    const urlKey = options.urlKey || "widget_background_url";
+    const fallbackColor = options.fallbackColor || "#FFFFFF";
+    const includeGradient = options.includeGradient !== false;
+
+    const color1 = styles[colorKey] || fallbackColor;
+    const color2 = styles[color2Key] || null;
+    const backgroundUrl = styles[urlKey] || null;
+
+    if (backgroundUrl) {
+      return "url(" + resolveAssetUrl(host, backgroundUrl) + ")";
+    }
+
+    if (includeGradient && color2) {
+      return "linear-gradient(135deg, " + color1 + " 0%, " + color2 + " 100%)";
+    }
+
+    return color1;
+  }
+
+  function resolveLayerBackground(host, color, imagePath) {
+    if (!imagePath) {
+      return color;
+    }
+
+    return "url(" + resolveAssetUrl(host, imagePath) + "), " + color;
+  }
+
+  function jsonHeaders() {
+    return {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+  }
+
+  function playAudio(src, volume) {
+    const audio = new Audio(src);
+    audio.volume = volume;
+    audio.play().catch(function () {
+      // Autoplay may be blocked by the browser.
+    });
+  }
+
   class ChatWidget {
     constructor() {
-      //this.host = "https://app.meetboostly.com";
-      this.host = "http://localhost:8000";
       this.scriptTag = document.currentScript;
-      this.clientDomain = `${window.location.protocol}//${window.location.host}`;
-      this.clientUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+      this.host = resolveHost(this.scriptTag, DEFAULT_HOST);
+      this.clientDomain = window.location.protocol + "//" + window.location.host;
+      this.clientUrl = this.clientDomain + window.location.pathname;
       this.widget = null;
-      this.videoAspectRatio = 16 / 9; // Default aspect ratio
-      this.initialWidth = 150; // Initial width in pixels (will be updated from widget settings)
-      this.isExpanded = false; // Track expansion state
-      this.isMuted = true; // Track mute state
-      this.isChatFormVisible = false; // Track chat form visibility
-      this.chatExist = false; // Track if chat exists in localStorage
-      this.currentChat = null; // Store current chat data from response
-      this.currentChatId = null; // Store current chat ID
-      this.currentContact = null; // Store current contact ID
-      this.widgetId = null; // Store widget ID
-      this.echo = null; // Echo instance for real-time communication
-      this.isWidgetClosed = false; // Track if widget is completely closed
+      this.videoAspectRatio = 16 / 9;
+      this.initialWidth = 150;
+      this.isExpanded = false;
+      this.isMuted = true;
+      this.isChatFormVisible = false;
+      this.chatExist = false;
+      this.currentChat = null;
+      this.currentChatId = null;
+      this.currentContact = null;
+      this.widgetId = null;
+      this.echo = null;
+      this.isWidgetClosed = false;
+      this.icons = ICONS;
+      this.isDragging = false;
+      this.dragMoved = false;
+      this.dragPointerId = null;
+      this.dragListenersBound = false;
+      this.reopenDragBound = false;
+      this.dragElement = null;
+    }
+    getStyles() {
+      return (this.widget && this.widget.style) ? this.widget.style : {};
+    }
 
-      // Icon definitions using Heroicons (16px size)
-      this.icons = {
-        mute: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-                </svg>`,
-        unmute: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                </svg>`,
-        expand: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-                </svg>`,
-        collapse: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L12 12L6 6"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L12 12L18 18"></path>
-                </svg>`,
-        minimize: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
-                </svg>`,
-        close: `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>`,
+    hasMediaUrl() {
+      return !!(this.widget && this.widget.media && this.widget.media.url);
+    }
+
+    getWidgetValue(key, fallback) {
+      if (fallback === undefined) {
+        fallback = "";
+      }
+
+      return (this.widget && this.widget[key] !== undefined && this.widget[key] !== null)
+        ? this.widget[key]
+        : fallback;
+    }
+
+    assetUrl(path) {
+      return resolveAssetUrl(this.host, path);
+    }
+
+    getBackgroundStyle(options) {
+      return resolveBackgroundStyle(this.host, this.getStyles(), options);
+    }
+
+    getFormFieldSettings() {
+      return {
+        showName: this.getWidgetValue("form_show_name", true),
+        showEmail: this.getWidgetValue("form_show_email", true),
+        showMessage: this.getWidgetValue("form_show_message", true),
       };
     }
+
+    applyChatDimensions() {
+      const styles = this.getStyles();
+      const width = parsePx(styles.widget_width, 300);
+      const height = parsePx(styles.widget_height, 500);
+
+      this.widgetWidth = width;
+      this.widgetHeight = height;
+      this.widgetContainer.style.width = width + "px";
+      this.widgetContainer.style.height = height + "px";
+    }
+
+    hideMediaUi() {
+      if (this.videoContainer) {
+        this.videoContainer.style.display = "none";
+      }
+
+      if (this.expandedButtonsContainer) {
+        this.expandedButtonsContainer.style.display = "none";
+      }
+    }
+
+    pauseVideo() {
+      if (!this.videoElement) {
+        return;
+      }
+
+      this.videoElement.muted = true;
+      this.videoElement.pause();
+      this.isMuted = true;
+
+      if (this.muteButton) {
+        this.muteButton.innerHTML = this.icons.mute;
+      }
+    }
+
+    showCloseButtonInHeader() {
+      if (!this.hoverButton) {
+        return;
+      }
+
+      this.hoverButton.style.opacity = "1";
+      this.hoverButton.style.pointerEvents = "auto";
+      this.hoverButton.innerHTML = this.icons.close;
+    }
+
+    prepareForChatView(options) {
+      options = options || {};
+
+      this.hideMediaUi();
+      this.pauseVideo();
+
+      if (options.hideMuteButton && this.muteButton) {
+        this.muteButton.style.display = "none";
+      }
+
+      this.showCloseButtonInHeader();
+    }
+
+    api(path, options) {
+      options = options || {};
+      const fetchOptions = {
+        headers: jsonHeaders(),
+      };
+
+      Object.keys(options).forEach(function (key) {
+        fetchOptions[key] = options[key];
+      });
+
+      return fetch(this.host + path, fetchOptions).then(function (response) {
+        if (!response.ok) {
+          throw new Error("Request failed: " + response.status);
+        }
+
+        return response.json();
+      });
+    }
+
+    isDraggableState() {
+      return !!(
+        this.widgetContainer &&
+        !this.isWidgetClosed &&
+        this.widgetContainer.style.display !== "none"
+      );
+    }
+
+    isDragBlockedTarget(target) {
+      const controls = [
+        this.muteButton,
+        this.hoverButton,
+        this.widgetCloseButton,
+        this.actionButton,
+        this.startChatButton,
+        this.expandedButtonsContainer,
+        this.messagesContainer,
+      ].filter(Boolean);
+
+      if (controls.some(function (control) {
+        return control.contains(target);
+      })) {
+        return true;
+      }
+
+      return !!target.closest("input, textarea, button, a, select, label");
+    }
+
+    ensureElementPosition(element) {
+      const rect = element.getBoundingClientRect();
+
+      element.style.top = rect.top + "px";
+      element.style.left = rect.left + "px";
+      element.style.bottom = "auto";
+      element.style.right = "auto";
+
+      if (element === this.widgetContainer) {
+        element.style.transform = "none";
+      }
+    }
+
+    ensureWidgetPosition() {
+      if (this.widgetContainer) {
+        this.ensureElementPosition(this.widgetContainer);
+      }
+    }
+
+    updateDragCursor() {
+      if (this.widgetContainer && this.isDraggableState()) {
+        this.widgetContainer.style.cursor = "grab";
+        this.widgetContainer.style.touchAction = "none";
+      }
+
+      if (this.reopenButton && this.isWidgetClosed) {
+        this.reopenButton.style.cursor = "grab";
+        this.reopenButton.style.touchAction = "none";
+      }
+    }
+
+    consumeDragClick() {
+      if (!this.dragMoved) {
+        return false;
+      }
+
+      this.dragMoved = false;
+      return true;
+    }
+
+    bindDragListeners() {
+      if (this.dragListenersBound || !this.widgetContainer) {
+        return;
+      }
+
+      this.dragListenersBound = true;
+      this.handleDragStart = this.onWidgetDragStart.bind(this);
+      this.handleDragMove = this.onDragMove.bind(this);
+      this.handleDragEnd = this.onDragEnd.bind(this);
+
+      this.widgetContainer.addEventListener("pointerdown", this.handleDragStart);
+      document.addEventListener("pointermove", this.handleDragMove);
+      document.addEventListener("pointerup", this.handleDragEnd);
+      document.addEventListener("pointercancel", this.handleDragEnd);
+      this.updateDragCursor();
+    }
+
+    bindReopenDragListeners() {
+      if (!this.reopenButton || this.reopenDragBound) {
+        return;
+      }
+
+      this.reopenDragBound = true;
+      this.handleReopenDragStart = this.onReopenDragStart.bind(this);
+
+      this.reopenButton.addEventListener("pointerdown", this.handleReopenDragStart);
+    }
+
+    beginDrag(element, e) {
+      this.ensureElementPosition(element);
+      this.isDragging = true;
+      this.dragMoved = false;
+      this.dragElement = element;
+      this.dragPointerId = e.pointerId;
+      this.dragStartX = e.clientX;
+      this.dragStartY = e.clientY;
+
+      const rect = element.getBoundingClientRect();
+      this.dragOffsetX = e.clientX - rect.left;
+      this.dragOffsetY = e.clientY - rect.top;
+      element.style.transition = "none";
+      element.style.cursor = "grabbing";
+
+      if (element.setPointerCapture) {
+        element.setPointerCapture(e.pointerId);
+      }
+    }
+
+    onWidgetDragStart(e) {
+      if (!this.isDraggableState() || e.button !== 0) {
+        return;
+      }
+
+      if (this.isDragBlockedTarget(e.target)) {
+        return;
+      }
+
+      this.beginDrag(this.widgetContainer, e);
+      e.preventDefault();
+    }
+
+    onReopenDragStart(e) {
+      if (!this.reopenButton || e.button !== 0) {
+        return;
+      }
+
+      this.beginDrag(this.reopenButton, e);
+      e.preventDefault();
+    }
+
+    onDragMove(e) {
+      if (!this.isDragging || !this.dragElement || e.pointerId !== this.dragPointerId) {
+        return;
+      }
+
+      const width = this.dragElement.offsetWidth;
+      const height = this.dragElement.offsetHeight;
+      const peek = 48;
+      const maxX = window.innerWidth - peek;
+      const maxY = window.innerHeight - peek;
+      const minX = peek - width;
+      const minY = peek - height;
+      const x = Math.max(minX, Math.min(e.clientX - this.dragOffsetX, maxX));
+      const y = Math.max(minY, Math.min(e.clientY - this.dragOffsetY, maxY));
+
+      this.dragElement.style.left = x + "px";
+      this.dragElement.style.top = y + "px";
+
+      if (Math.abs(e.clientX - this.dragStartX) > 5 || Math.abs(e.clientY - this.dragStartY) > 5) {
+        this.dragMoved = true;
+      }
+    }
+
+    onDragEnd(e) {
+      if (!this.isDragging || !this.dragElement || e.pointerId !== this.dragPointerId) {
+        return;
+      }
+
+      const dragElement = this.dragElement;
+      this.isDragging = false;
+      this.dragPointerId = null;
+      this.dragElement = null;
+      dragElement.style.transition = "";
+      this.updateDragCursor();
+
+      if (dragElement.releasePointerCapture && dragElement.hasPointerCapture(e.pointerId)) {
+        dragElement.releasePointerCapture(e.pointerId);
+      }
+    }
+
+    unbindDragListeners() {
+      if (!this.dragListenersBound) {
+        return;
+      }
+
+      this.widgetContainer.removeEventListener("pointerdown", this.handleDragStart);
+      document.removeEventListener("pointermove", this.handleDragMove);
+      document.removeEventListener("pointerup", this.handleDragEnd);
+      document.removeEventListener("pointercancel", this.handleDragEnd);
+      this.dragListenersBound = false;
+    }
+
 
     /**
      * Track analytics events
@@ -85,72 +484,38 @@
 
     async init() {
       try {
-        // Check if chat exists in localStorage
-        const bcId = localStorage.getItem("bc_id");
-        this.widgetId = localStorage.getItem("bw_id") || null;
+        const bcId = localStorage.getItem(STORAGE_KEYS.CHAT_ID);
+        this.widgetId = localStorage.getItem(STORAGE_KEYS.WIDGET_ID) || null;
         this.chatExist = bcId !== null;
 
-        if (this.chatExist) {
-          console.log("Existing chat found with ID:", bcId);
-        }
-
-        // Call to verify endpoint
-        const response = await fetch(`${this.host}/verify`, {
+        const data = await this.api("/verify", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
           body: JSON.stringify({
             client_domain: this.clientDomain,
             client_url: this.clientUrl,
-            bc_id: this.chatExist ? localStorage.getItem("bc_id") : null,
+            bc_id: this.chatExist ? bcId : null,
             bw_id: this.widgetId,
             timestamp: Date.now(),
           }),
         });
 
-        if (!response.ok) {
-          throw new Error(`Verification failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Widget verification successful:", data);
         this.widget = data.widget;
         this.widgetId = data.widget.id;
-        localStorage.setItem("bw_id", this.widgetId);
+        localStorage.setItem(STORAGE_KEYS.WIDGET_ID, this.widgetId);
 
-        // Check if response contains chat data and chat exists
         if (data.chat && this.chatExist) {
-          console.log(
-            "Existing chat found in response, opening chat interface"
-          );
-          console.log("Chat data:", data.chat);
           this.currentChatId = data.chat.id;
           this.currentContact = data.chat.contact_id;
-          this.currentChat = data.chat; // Store the entire chat object
-
-          // Initialize widget first
-          console.log("Initializing widget...");
+          this.currentChat = data.chat;
           this.initializeWidget();
-
-          // Initialize Echo for real-time communication
-          console.log("Initializing Echo...");
           this.initializeEcho();
-
-          // For existing chats, show chat interface immediately without video expansion delay
-          console.log(
-            "Showing chat interface immediately for existing chat..."
-          );
           this.showChatInterface();
-          console.log("showChatInterface() called");
-        } else {
-          // Continue with normal widget initialization
-          this.initializeWidget();
+          return;
         }
+
+        this.initializeWidget();
       } catch (error) {
         console.error("Widget verification failed:", error);
-        // Handle verification failure - maybe show an error message or disable widget
       }
     }
 
@@ -163,77 +528,29 @@
 
       // Track widget loaded event
       this.trackAnalytics('loaded', {
-        widget_type: this.widget && this.widget.media ? 'video' : 'button',
+        widget_type: this.hasMediaUrl() ? 'video' : 'button',
         has_chat: this.chatExist
       });
     }
 
     applyWidgetStyles() {
       if (!this.widgetContainer || !this.widget || !this.widget.style) {
-        console.log(
-          "Cannot apply widget styles: missing container or widget data"
-        );
-        console.log("Widget object:", this.widget);
         return;
       }
 
-      // Check if this is a button widget (no media)
-      const hasMedia =
-        this.widget && this.widget.media && this.widget.media.url;
-
-      const widgetStyles = this.widget.style;
-      console.log("Raw widget styles object:", widgetStyles);
+      const widgetStyles = this.getStyles();
       const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
       const widgetTextColor = widgetStyles.widget_text_color || "#000000";
 
-      // Initialize backgroundStyle variable
-      let backgroundStyle = "transparent";
-
-      // Apply styles to widget container
-      this.widgetContainer.style.borderRadius = `${widgetBorderRadius}px`;
+      this.widgetContainer.style.borderRadius = widgetBorderRadius + "px";
       this.widgetContainer.style.color = widgetTextColor;
+      this.widgetContainer.style.background = this.hasMediaUrl()
+        ? this.getBackgroundStyle()
+        : "transparent";
 
-      // Only apply background styles for video widgets, not button widgets
-      if (hasMedia) {
-        const widgetBackgroundColor1 =
-          widgetStyles.widget_background_color_1 || "#FFFFFF";
-        const widgetBackgroundColor2 =
-          widgetStyles.widget_background_color_2 || null;
-        const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
-
-        // Set background based on available options
-        backgroundStyle = widgetBackgroundColor1;
-        if (widgetBackgroundUrl) {
-          // Check if it's an external URL (starts with http/https) or local path
-          if (
-            widgetBackgroundUrl.startsWith("http://") ||
-            widgetBackgroundUrl.startsWith("https://")
-          ) {
-            backgroundStyle = `url(${widgetBackgroundUrl})`;
-          } else {
-            backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
-          }
-        } else if (widgetBackgroundColor2) {
-          backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
-        }
-
-        this.widgetContainer.style.background = backgroundStyle;
-      } else {
-        // For button widgets, ensure no background is set
-        this.widgetContainer.style.background = "transparent";
-        backgroundStyle = "transparent";
-      }
-
-      // Apply border radius to video container as well
       if (this.videoContainer) {
-        this.videoContainer.style.borderRadius = `${widgetBorderRadius}px`;
+        this.videoContainer.style.borderRadius = widgetBorderRadius + "px";
       }
-
-      console.log("Widget styles applied:", {
-        borderRadius: widgetBorderRadius,
-        background: backgroundStyle,
-        textColor: widgetTextColor,
-      });
     }
 
     initializeEcho() {
@@ -246,14 +563,14 @@
 
         // Prevent multiple connection attempts
         if (this.websocket && this.websocket.readyState !== WebSocket.CLOSED) {
-          console.log("WebSocket already exists, skipping initialization");
+
           return;
         }
 
         this.websocket = new WebSocket(wsUrl);
 
         this.websocket.onopen = () => {
-          console.log("WebSocket connected for real-time communication");
+
           this.reconnectAttempts = 0; // Reset reconnect attempts
 
           // Subscribe to the chat channel
@@ -271,7 +588,6 @@
           try {
             const data = JSON.parse(event.data);
             if (data.event === "MessageSent" && data.data) {
-              console.log("Received real-time message:", data.data);
 
               // Only display messages from agent (admin), not from user
               if (data.data.type === "agent") {
@@ -288,7 +604,6 @@
         };
 
         this.websocket.onclose = () => {
-          console.log("WebSocket connection closed");
 
           // Only attempt reconnection if we have a chat ID and haven't exceeded max attempts
           if (
@@ -296,9 +611,6 @@
             (!this.reconnectAttempts || this.reconnectAttempts < 3)
           ) {
             this.reconnectAttempts = (this.reconnectAttempts || 0) + 1;
-            console.log(
-              `Attempting reconnection ${this.reconnectAttempts}/3...`
-            );
 
             setTimeout(() => {
               if (this.currentChatId) {
@@ -306,9 +618,7 @@
               }
             }, 5000);
           } else if (this.reconnectAttempts >= 3) {
-            console.log(
-              "Max reconnection attempts reached. Real-time messaging disabled."
-            );
+
           }
         };
       } catch (error) {
@@ -324,11 +634,6 @@
         console.warn("Cannot listen for messages: No chat ID");
         return;
       }
-
-      console.log(
-        "Listening for messages on chat channel:",
-        this.currentChatId
-      );
 
       // Try WebSocket first
       if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
@@ -348,8 +653,6 @@
       if (this.pollingInterval) {
         clearInterval(this.pollingInterval);
       }
-
-      console.log("Starting polling for new messages...");
 
       this.pollingInterval = setInterval(() => {
         this.checkForNewMessages();
@@ -373,7 +676,6 @@
             });
 
             if (newMessages.length > 0) {
-              console.log("Found new messages via polling:", newMessages);
 
               // Update last message time
               this.lastMessageTime = new Date(
@@ -417,26 +719,11 @@
     }
 
     playNotificationSound() {
-      // Create audio element for notification sound
-      const audio = new Audio();
+      const soundUrl = this.widget && this.widget.media && this.widget.media.notification_sound_url
+        ? this.assetUrl(this.widget.media.notification_sound_url)
+        : FALLBACK_AUDIO;
 
-      // Set audio source if available in widget data
-      if (
-        this.widget &&
-        this.widget.media &&
-        this.widget.media.notification_sound_url
-      ) {
-        audio.src = `${this.host}/storage/${this.widget.media.notification_sound_url}`;
-      } else {
-        // Fallback to a simple notification sound
-        audio.src =
-          "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT";
-      }
-
-      audio.volume = 0.3; // Set volume to 30%
-      audio.play().catch((error) => {
-        console.log("Notification sound playback failed:", error);
-      });
+      playAudio(soundUrl, 0.3);
     }
 
     showMessageNotification(message) {
@@ -485,11 +772,7 @@
     }
 
     createWidget() {
-      // Check if widget has media
-      const hasMedia =
-        this.widget && this.widget.media && this.widget.media.url;
-
-      if (hasMedia) {
+      if (this.hasMediaUrl()) {
         this.createVideoWidget();
       } else {
         this.createButtonWidget();
@@ -497,54 +780,17 @@
     }
 
     createVideoWidget() {
-      // Calculate height based on aspect ratio and initial width
       const initialHeight = this.initialWidth / this.videoAspectRatio;
-
-      // Apply widget styles from widget style object
-      const widgetStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
+      const widgetStyles = this.getStyles();
       const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
-      const widgetBackgroundColor1 =
-        widgetStyles.widget_background_color_1 || "#FFFFFF";
-      const widgetBackgroundColor2 =
-        widgetStyles.widget_background_color_2 || null;
-      const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
       const widgetTextColor = widgetStyles.widget_text_color || "#000000";
-      const widgetWidth = widgetStyles.widget_width || "350px";
+      const backgroundStyle = this.getBackgroundStyle();
 
-      // Store the full widget width from settings
-      this.widgetWidth = parseInt(widgetWidth.replace("px", ""));
-      // Keep initial width as collapsed size (150px)
+      this.widgetWidth = parsePx(widgetStyles.widget_width, 350);
       this.initialWidth = 150;
 
-      // Debug log to verify widget styles are being applied
-      console.log("Widget styles:", {
-        widgetStyles,
-        widgetBorderRadius,
-        widgetBackgroundColor1,
-        widgetTextColor,
-      });
-      console.log("Full widget data:", this.widget);
-
-      // Create main widget container
       this.widgetContainer = document.createElement("div");
-      this.widgetContainer.id = "boostly-chat-widget";
-
-      // Set background based on available options
-      let backgroundStyle = widgetBackgroundColor1;
-      if (widgetBackgroundUrl) {
-        // Check if it's an external URL (starts with http/https) or local path
-        if (
-          widgetBackgroundUrl.startsWith("http://") ||
-          widgetBackgroundUrl.startsWith("https://")
-        ) {
-          backgroundStyle = `url(${widgetBackgroundUrl})`;
-        } else {
-          backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
-        }
-      } else if (widgetBackgroundColor2) {
-        backgroundStyle = `linear-gradient(135deg, ${widgetBackgroundColor1} 0%, ${widgetBackgroundColor2} 100%)`;
-      }
+      this.widgetContainer.id = WIDGET_ID;
 
       this.widgetContainer.style.cssText = `
                 position: fixed;
@@ -558,7 +804,7 @@
                 overflow: hidden;
                 box-shadow: 0 5px 20px rgba(0,0,0,0.1);
                 transition: all 0.3s ease;
-                cursor: pointer;
+                cursor: grab;
                 background: ${backgroundStyle};
                 color: ${widgetTextColor};
             `;
@@ -577,6 +823,7 @@
 
       // Add hover and click event listeners
       this.addEventListeners();
+      this.bindDragListeners();
 
       // Add to page
       document.body.appendChild(this.widgetContainer);
@@ -585,7 +832,7 @@
     createButtonWidget() {
       // Apply widget styles from widget style object
       const widgetStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
+        this.getStyles();
       const startButtonBorderRadius =
         widgetStyles.start_button_border_radius ?? 5;
       const startButtonBackgroundColor =
@@ -602,8 +849,8 @@
       const widgetHeight = widgetStyles.widget_height || "500px";
 
       // Store the widget dimensions for chat interface
-      this.widgetWidth = parseInt(widgetWidth.replace("px", ""));
-      this.widgetHeight = parseInt(widgetHeight.replace("px", ""));
+      this.widgetWidth = parsePx(widgetStyles.widget_width, 300);
+      this.widgetHeight = parsePx(widgetStyles.widget_height, 500);
 
       // Get button text
       const buttonText =
@@ -613,7 +860,7 @@
 
       // Create main widget container
       this.widgetContainer = document.createElement("div");
-      this.widgetContainer.id = "boostly-chat-widget";
+      this.widgetContainer.id = WIDGET_ID;
 
       this.widgetContainer.style.cssText = `
                 position: fixed;
@@ -626,6 +873,7 @@
                 opacity: 0;
                 transform: translateY(20px) scale(0.9);
                 transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                cursor: grab;
             `;
 
       // Create the chat button
@@ -668,13 +916,18 @@
 
       // Add click handler - same behavior as video start chat
       this.chatButton.addEventListener("click", () => {
+        if (this.consumeDragClick()) {
+          return;
+        }
+
         this.showChatForm();
       });
 
-      //this.widgetContainer.appendChild(this.chatButton);
+      this.widgetContainer.appendChild(this.chatButton);
 
       // Add to page
       document.body.appendChild(this.widgetContainer);
+      this.bindDragListeners();
 
       // Add CSS animation keyframes
       this.addButtonAnimationStyles();
@@ -714,7 +967,7 @@
     createVideoBackground() {
       // Get widget border radius for consistency
       const widgetStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
+        this.getStyles();
       const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
 
       // Create video background container
@@ -744,16 +997,14 @@
       this.videoElement.playsInline = true;
 
       // Set video source from widget media
-      if (this.widget && this.widget.media && this.widget.media.url) {
-        const videoUrl = `${this.host}/storage/${this.widget.media.url}`;
+      if (this.hasMediaUrl()) {
+        const videoUrl = this.assetUrl(this.widget.media.url);
         this.videoElement.src = videoUrl;
-        console.log("Loading video from:", videoUrl);
 
         // Get video aspect ratio when metadata is loaded
         this.videoElement.addEventListener("loadedmetadata", () => {
           this.videoAspectRatio =
             this.videoElement.videoWidth / this.videoElement.videoHeight;
-          console.log("Video aspect ratio:", this.videoAspectRatio);
 
           // Only update widget dimensions if we're not showing chat interface
           // (chat interface should use its own configured dimensions)
@@ -924,6 +1175,10 @@
 
       // Click event to expand video (only when collapsed)
       this.widgetContainer.addEventListener("click", () => {
+        if (this.consumeDragClick()) {
+          return;
+        }
+
         if (!this.isExpanded) {
           this.expandVideo();
         }
@@ -985,15 +1240,15 @@
       this.createExpandedButtons();
 
       this.isExpanded = true;
+      this.updateDragCursor();
 
       // Track widget opened event
       this.trackAnalytics('opened', {
         expanded_width: expandedWidth,
         expanded_height: expandedHeight,
-        widget_type: this.widget && this.widget.media ? 'video' : 'button'
+        widget_type: this.hasMediaUrl() ? 'video' : 'button'
       });
 
-      console.log("Video expanded to:", expandedWidth, "x", expandedHeight);
     }
 
     collapseVideo() {
@@ -1033,27 +1288,16 @@
       }
 
       this.isExpanded = false;
+      this.updateDragCursor();
 
-      console.log("Video collapsed to:", collapsedWidth, "x", collapsedHeight);
     }
 
     playExpansionSound() {
-      // Create audio element for expansion sound
-      const audio = new Audio();
+      const soundUrl = this.widget && this.widget.media && this.widget.media.audio_url
+        ? this.assetUrl(this.widget.media.audio_url)
+        : FALLBACK_AUDIO;
 
-      // Set audio source if available in widget data
-      if (this.widget && this.widget.media && this.widget.media.audio_url) {
-        audio.src = `${this.host}/storage/${this.widget.media.audio_url}`;
-      } else {
-        // Fallback to a simple notification sound (you can replace with your own sound file)
-        audio.src =
-          "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT";
-      }
-
-      audio.volume = 0.5; // Set volume to 50%
-      audio.play().catch((error) => {
-        console.log("Audio playback failed:", error);
-      });
+      playAudio(soundUrl, 0.5);
     }
 
     createExpandedButtons() {
@@ -1076,7 +1320,7 @@
 
         // Apply action button styles from widget style object
         const actionButtonStyles =
-          this.widget && this.widget.style ? this.widget.style : {};
+          this.getStyles();
         const actionBorderRadius =
           actionButtonStyles.action_button_border_radius ?? 8;
         const actionBackgroundColor =
@@ -1130,7 +1374,7 @@
           this.trackAnalytics('action_clicked', {
             action_url: this.widget.widget_action.url,
             action_text: this.widget.widget_action.button_text || "Take Action",
-            widget_type: this.widget && this.widget.media ? 'video' : 'button'
+            widget_type: this.hasMediaUrl() ? 'video' : 'button'
           });
           
           if (this.widget.widget_action.url) {
@@ -1146,7 +1390,7 @@
 
       // Apply chat button styles from widget style object
       const chatButtonStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
+        this.getStyles();
       const borderRadius = chatButtonStyles.chat_button_border_radius ?? 8;
       const backgroundColor =
         chatButtonStyles.chat_button_background_color ||
@@ -1203,108 +1447,42 @@
     }
 
     showChatForm() {
-      // Hide chat button immediately when clicked (for button widgets without media)
       if (this.chatButton) {
         this.chatButton.style.display = "none";
       }
 
-      // Resize widget container to use configured dimensions for chat interface
       if (this.widgetWidth && this.widgetHeight) {
-        this.widgetContainer.style.width = `${this.widgetWidth}px`;
-        this.widgetContainer.style.height = `${this.widgetHeight}px`;
+        this.widgetContainer.style.width = this.widgetWidth + "px";
+        this.widgetContainer.style.height = this.widgetHeight + "px";
       }
 
-      // Check if there's a previous chat (either from localStorage or current session)
-      const bcId = localStorage.getItem("bc_id");
+      const bcId = localStorage.getItem(STORAGE_KEYS.CHAT_ID);
       const hasExistingChat = (this.chatExist && this.currentChatId) || bcId;
 
       if (hasExistingChat) {
-        console.log("Previous chat exists, opening chat interface directly");
-
-        // If we have a chat ID from localStorage but not in current session, restore it
         if (bcId && !this.currentChatId) {
           this.currentChatId = bcId;
           this.chatExist = true;
         }
 
-        // Hide video and buttons (only if they exist - for video widgets)
-        if (this.videoContainer) {
-          this.videoContainer.style.display = "none";
-        }
-        if (this.expandedButtonsContainer) {
-          this.expandedButtonsContainer.style.display = "none";
-        }
-
-        // Mute and pause video when chat interface is shown (only if video exists)
-        if (this.videoElement) {
-          this.videoElement.muted = true;
-          this.videoElement.pause();
-          this.isMuted = true;
-        }
-        if (this.muteButton) {
-          this.muteButton.innerHTML = this.icons.mute; // Muted icon
-        }
-
-        // Show chat interface (this will create the interface, initialize Echo, and load messages)
+        this.prepareForChatView();
         this.showChatInterface();
-      } else {
-        // Hide video and buttons (only if they exist - for video widgets)
-        if (this.videoContainer) {
-          this.videoContainer.style.display = "none";
-        }
-        if (this.expandedButtonsContainer) {
-          this.expandedButtonsContainer.style.display = "none";
-        }
-
-        // Mute and pause video when chat form is shown (only if video exists)
-        if (this.videoElement) {
-          this.videoElement.muted = true;
-          this.videoElement.pause();
-          this.isMuted = true;
-        }
-        if (this.muteButton) {
-          this.muteButton.innerHTML = this.icons.mute; // Muted icon
-          // Hide mute button when chat form is shown (video is hidden)
-          this.muteButton.style.display = "none";
-        }
-
-        // Keep close button visible when chat form is shown
-        if (this.hoverButton) {
-          this.hoverButton.style.opacity = "1";
-          this.hoverButton.style.pointerEvents = "auto";
-          // Change to close icon
-          this.hoverButton.innerHTML = this.icons.close;
-        }
-
-        // Create and show chat form
-        this.createChatForm();
-
-        this.isChatFormVisible = true;
+        return;
       }
+
+      this.prepareForChatView({ hideMuteButton: true });
+      this.createChatForm();
+      this.isChatFormVisible = true;
+      this.updateDragCursor();
     }
 
     createChatForm() {
-      // Get widget styles for background
-      const widgetStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
+      const widgetStyles = this.getStyles();
       const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
-      const widgetBackgroundColor1 =
-        widgetStyles.widget_background_color_1 || "#667eea";
-      const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
-
-      // Set background based on available options
-      let backgroundStyle = widgetBackgroundColor1;
-      if (widgetBackgroundUrl) {
-        // Check if it's an external URL (starts with http/https) or local path
-        if (
-          widgetBackgroundUrl.startsWith("http://") ||
-          widgetBackgroundUrl.startsWith("https://")
-        ) {
-          backgroundStyle = `url(${widgetBackgroundUrl})`;
-        } else {
-          backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
-        }
-      }
+      const backgroundStyle = this.getBackgroundStyle({
+        fallbackColor: "#667eea",
+        includeGradient: false,
+      });
 
       // Create chat form container
       this.chatFormContainer = document.createElement("div");
@@ -1335,6 +1513,7 @@
                 text-align: center;
                 margin-bottom: 20px;
                 color: white;
+                cursor: grab;
             `;
       // Get form title from widget data
       const formTitle =
@@ -1358,23 +1537,10 @@
                 overflow: hidden;
             `;
 
-      // Get form field visibility settings
-      const formShowName =
-        this.widget && this.widget.form_show_name !== undefined
-          ? this.widget.form_show_name
-          : true;
-      const formShowEmail =
-        this.widget && this.widget.form_show_email !== undefined
-          ? this.widget.form_show_email
-          : true;
-      const formShowMessage =
-        this.widget && this.widget.form_show_message !== undefined
-          ? this.widget.form_show_message
-          : true;
+      const { showName, showEmail, showMessage } = this.getFormFieldSettings();
 
-      // Name field (conditional)
       let nameField = null;
-      if (formShowName) {
+      if (showName) {
         nameField = document.createElement("div");
         nameField.innerHTML = `
                     <input type="text" id="chat-name" required style="
@@ -1394,7 +1560,7 @@
 
       // Email field (conditional)
       let emailField = null;
-      if (formShowEmail) {
+      if (showEmail) {
         emailField = document.createElement("div");
         emailField.innerHTML = `
                     <input type="email" id="chat-email" required style="
@@ -1414,7 +1580,7 @@
 
       // Message field (conditional)
       let messageField = null;
-      if (formShowMessage) {
+      if (showMessage) {
         messageField = document.createElement("div");
         messageField.innerHTML = `
                     <textarea id="chat-message" required rows="3" style="
@@ -1563,39 +1729,26 @@
       }
 
       this.isChatFormVisible = false;
+      this.updateDragCursor();
     }
 
     submitChatForm() {
-      // Get form field visibility settings
-      const formShowName =
-        this.widget && this.widget.form_show_name !== undefined
-          ? this.widget.form_show_name
-          : true;
-      const formShowEmail =
-        this.widget && this.widget.form_show_email !== undefined
-          ? this.widget.form_show_email
-          : true;
-      const formShowMessage =
-        this.widget && this.widget.form_show_message !== undefined
-          ? this.widget.form_show_message
-          : true;
+      const { showName, showEmail, showMessage } = this.getFormFieldSettings();
 
-      // Get values from enabled fields only
-      const name = formShowName
+      const name = showName
         ? document.getElementById("chat-name")?.value || ""
         : "";
-      const email = formShowEmail
+      const email = showEmail
         ? document.getElementById("chat-email")?.value || ""
         : "";
-      const message = formShowMessage
+      const message = showMessage
         ? document.getElementById("chat-message")?.value || ""
         : "";
 
-      // Validate required fields
       const missingFields = [];
-      if (formShowName && !name) missingFields.push("Name");
-      if (formShowEmail && !email) missingFields.push("Email");
-      if (formShowMessage && !message) missingFields.push("Message");
+      if (showName && !name) missingFields.push("Name");
+      if (showEmail && !email) missingFields.push("Email");
+      if (showMessage && !message) missingFields.push("Message");
 
       if (missingFields.length > 0) {
         alert(
@@ -1616,11 +1769,9 @@
         client_url: this.clientUrl,
       };
 
-      if (formShowName) formData.name = name;
-      if (formShowEmail) formData.email = email;
-      if (formShowMessage) formData.message = message;
-
-      console.log("Form data being sent:", JSON.stringify(formData));
+      if (showName) formData.name = name;
+      if (showEmail) formData.email = email;
+      if (showMessage) formData.message = message;
 
       // Make API call to Laravel backend
       fetch(`${this.host}/api/chat/start`, {
@@ -1633,11 +1784,11 @@
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("data", data);
+
           if (data.success) {
-            console.log("data", data);
+
             // Store chat_id to localStorage
-            localStorage.setItem("bc_id", data.chat_id);
+            localStorage.setItem(STORAGE_KEYS.CHAT_ID, data.chat_id);
 
             // Store chat data for future use
             this.currentChatId = data.chat_id;
@@ -1647,7 +1798,7 @@
             this.trackAnalytics('chat_started', {
               chat_id: data.chat_id,
               contact_id: data.contact,
-              widget_type: this.widget && this.widget.media ? 'video' : 'button',
+              widget_type: this.hasMediaUrl() ? 'video' : 'button',
               form_data: {
                 has_name: formData.name ? true : false,
                 has_email: formData.email ? true : false,
@@ -1677,115 +1828,37 @@
     }
 
     showChatInterface() {
-      console.log("showChatInterface() called");
-      console.log("Current chat ID:", this.currentChatId);
-      console.log("Current chat object:", this.currentChat);
+      this.applyChatDimensions();
 
-      // Resize widget container to use configured dimensions for chat interface
-      // Get dimensions directly from widget data to ensure they're available
-      const widgetStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
-      const widgetWidth = widgetStyles.widget_width || "300px";
-      const widgetHeight = widgetStyles.widget_height || "500px";
-
-      // Parse dimensions and apply them
-      const width = parseInt(widgetWidth.replace("px", ""));
-      const height = parseInt(widgetHeight.replace("px", ""));
-
-      this.widgetContainer.style.width = `${width}px`;
-      this.widgetContainer.style.height = `${height}px`;
-
-      // Store dimensions for future use
-      this.widgetWidth = width;
-      this.widgetHeight = height;
-
-      // Hide form and show chat interface
       if (this.chatFormContainer) {
-        console.log("Hiding chat form container");
         this.chatFormContainer.style.display = "none";
       }
 
-      // Hide video and buttons (only if they exist - for video widgets)
-      if (this.videoContainer) {
-        this.videoContainer.style.display = "none";
-      }
-      if (this.expandedButtonsContainer) {
-        this.expandedButtonsContainer.style.display = "none";
-      }
-
-      // Mute and pause video when chat interface is shown (only if video exists)
-      if (this.videoElement) {
-        console.log("Muting and pausing video");
-        this.videoElement.muted = true;
-        this.videoElement.pause();
-        this.isMuted = true;
-      }
-      if (this.muteButton) {
-        this.muteButton.innerHTML = "🔇"; // Muted icon
-        // Hide mute button when chat interface is shown (video is hidden)
-        this.muteButton.style.display = "none";
-      }
-
-      // Keep close button visible when chat interface is shown
-      if (this.hoverButton) {
-        this.hoverButton.style.opacity = "1";
-        this.hoverButton.style.pointerEvents = "auto";
-        // Change to close icon
-        this.hoverButton.innerHTML = this.icons.close;
-      }
-
-      // Create chat interface
-      console.log("Creating chat interface...");
+      this.prepareForChatView({ hideMuteButton: true });
       this.createChatInterface();
-      console.log("Chat interface created");
 
-      // Initialize Echo if not already done
       if (!this.echo) {
-        console.log("Initializing Echo...");
         this.initializeEcho();
       }
 
-      // Start listening for real-time messages
-      console.log("Starting to listen for messages...");
       this.listenForMessages();
 
-      // Check if we have messages from the response
       if (this.currentChat && this.currentChat.messages) {
-        console.log("Using messages from response:", this.currentChat.messages);
         this.displayMessages(this.currentChat.messages);
       } else {
-        console.log("Loading messages from API...");
-        // Load messages from API
         this.loadMessages();
       }
+
+      this.updateDragCursor();
     }
 
     createChatInterface() {
-      console.log("createChatInterface() called");
-      console.log("Widget container exists:", !!this.widgetContainer);
-      console.log("Widget object:", this.widget);
-
-      // Get widget styles for background
-      const widgetStyles =
-        this.widget && this.widget.style ? this.widget.style : {};
+      const widgetStyles = this.getStyles();
       const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
-      const widgetBackgroundColor1 =
-        widgetStyles.widget_background_color_1 || "#667eea";
-      const widgetBackgroundUrl = widgetStyles.widget_background_url || null;
-
-      // Set background based on available options
-      let backgroundStyle = widgetBackgroundColor1;
-      if (widgetBackgroundUrl) {
-        // Check if it's an external URL (starts with http/https) or local path
-        if (
-          widgetBackgroundUrl.startsWith("http://") ||
-          widgetBackgroundUrl.startsWith("https://")
-        ) {
-          backgroundStyle = `url(${widgetBackgroundUrl})`;
-        } else {
-          backgroundStyle = `url(${this.host}/storage/${widgetBackgroundUrl})`;
-        }
-      }
+      const backgroundStyle = this.getBackgroundStyle({
+        fallbackColor: "#667eea",
+        includeGradient: false,
+      });
 
       // Create chat interface container
       this.chatInterfaceContainer = document.createElement("div");
@@ -1812,22 +1885,14 @@
       const chatHeader = document.createElement("div");
       
       // Get chat header styles from widget style object
-      const chatHeaderStyles = this.widget && this.widget.style ? this.widget.style : {};
-      const chatHeaderBackgroundColor = chatHeaderStyles.chat_header_background_color || 'rgba(0, 0, 0, 0.8)';
-      const chatHeaderTextColor = chatHeaderStyles.chat_header_text_color || 'white';
-      const chatHeaderBackgroundImage = chatHeaderStyles.chat_header_background_image;
-      
-      // Build background style
-      let headerBackgroundStyle = chatHeaderBackgroundColor;
-      if (chatHeaderBackgroundImage) {
-        let backgroundImageUrl = chatHeaderBackgroundImage;
-        if (backgroundImageUrl.startsWith("http://") || backgroundImageUrl.startsWith("https://")) {
-          backgroundImageUrl = `url(${backgroundImageUrl})`;
-        } else {
-          backgroundImageUrl = `url(${this.host}/storage/${backgroundImageUrl})`;
-        }
-        headerBackgroundStyle = `${backgroundImageUrl}, ${chatHeaderBackgroundColor}`;
-      }
+      const chatHeaderStyles = this.getStyles();
+      const chatHeaderBackgroundColor = chatHeaderStyles.chat_header_background_color || "rgba(0, 0, 0, 0.8)";
+      const chatHeaderTextColor = chatHeaderStyles.chat_header_text_color || "white";
+      const headerBackgroundStyle = resolveLayerBackground(
+        this.host,
+        chatHeaderBackgroundColor,
+        chatHeaderStyles.chat_header_background_image
+      );
       
       chatHeader.style.cssText = `
                 padding: 6px 20px;
@@ -1841,6 +1906,7 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                cursor: grab;
             `;
       
       // Get the last agent who responded
@@ -1876,21 +1942,13 @@
       this.messagesContainer = document.createElement("div");
       
       // Get chat body styles from widget style object
-      const chatBodyStyles = this.widget && this.widget.style ? this.widget.style : {};
-      const chatBodyBackgroundColor = chatBodyStyles.chat_body_background_color || 'transparent';
-      const chatBodyBackgroundImage = chatBodyStyles.chat_body_background_image;
-      
-      // Build background style for chat body
-      let bodyBackgroundStyle = chatBodyBackgroundColor;
-      if (chatBodyBackgroundImage) {
-        let backgroundImageUrl = chatBodyBackgroundImage;
-        if (backgroundImageUrl.startsWith("http://") || backgroundImageUrl.startsWith("https://")) {
-          backgroundImageUrl = `url(${backgroundImageUrl})`;
-        } else {
-          backgroundImageUrl = `url(${this.host}/storage/${backgroundImageUrl})`;
-        }
-        bodyBackgroundStyle = `${backgroundImageUrl}, ${chatBodyBackgroundColor}`;
-      }
+      const chatBodyStyles = this.getStyles();
+      const chatBodyBackgroundColor = chatBodyStyles.chat_body_background_color || "transparent";
+      const bodyBackgroundStyle = resolveLayerBackground(
+        this.host,
+        chatBodyBackgroundColor,
+        chatBodyStyles.chat_body_background_image
+      );
       
       this.messagesContainer.style.cssText = `
                 flex: 1;
@@ -1909,21 +1967,13 @@
       const inputContainer = document.createElement("div");
       
       // Get chat footer styles from widget style object
-      const chatFooterStyles = this.widget && this.widget.style ? this.widget.style : {};
-      const chatFooterBackgroundColor = chatFooterStyles.chat_footer_background_color || 'rgba(0, 0, 0, 0.8)';
-      const chatFooterBackgroundImage = chatFooterStyles.chat_footer_background_image;
-      
-      // Build background style for chat footer
-      let footerBackgroundStyle = chatFooterBackgroundColor;
-      if (chatFooterBackgroundImage) {
-        let backgroundImageUrl = chatFooterBackgroundImage;
-        if (backgroundImageUrl.startsWith("http://") || backgroundImageUrl.startsWith("https://")) {
-          backgroundImageUrl = `url(${backgroundImageUrl})`;
-        } else {
-          backgroundImageUrl = `url(${this.host}/storage/${backgroundImageUrl})`;
-        }
-        footerBackgroundStyle = `${backgroundImageUrl}, ${chatFooterBackgroundColor}`;
-      }
+      const chatFooterStyles = this.getStyles();
+      const chatFooterBackgroundColor = chatFooterStyles.chat_footer_background_color || "rgba(0, 0, 0, 0.8)";
+      const footerBackgroundStyle = resolveLayerBackground(
+        this.host,
+        chatFooterBackgroundColor,
+        chatFooterStyles.chat_footer_background_image
+      );
       
       inputContainer.style.cssText = `
                 padding: 15px 20px;
@@ -2019,16 +2069,14 @@
         });
       }
 
-      console.log("Appending chat interface container to widget container");
       this.widgetContainer.appendChild(this.chatInterfaceContainer);
-      console.log("Chat interface container appended successfully");
 
       // Trigger entrance animation
       setTimeout(() => {
-        console.log("Triggering entrance animation");
+
         this.chatInterfaceContainer.style.opacity = "1";
         this.chatInterfaceContainer.style.transform = "scale(1) translateY(0)";
-        console.log("Entrance animation triggered");
+
       }, 50);
     }
 
@@ -2038,13 +2086,11 @@
         return;
       }
 
-      console.log("this.currentChatId", this.currentChatId);
-
       fetch(`${this.host}/api/chat/messages/${this.currentChatId}`)
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            console.log("data", data);
+
             this.displayMessages(data.messages);
           } else {
             console.error("Failed to load messages:", data.message);
@@ -2092,7 +2138,7 @@
             `;
 
       // Get widget styles for chat bubble customization
-      const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const widgetStyles = this.getStyles();
       const agentBubbleBackgroundColor = widgetStyles.widget_agent_buble_background_color || "rgba(255, 255, 255, 0.2)";
       const agentBubbleColor = widgetStyles.widget_agent_buble_color || "white";
       const userBubbleBackgroundColor = widgetStyles.widget_user_buble_background_color || "rgba(255, 255, 255, 0.95)";
@@ -2253,6 +2299,7 @@
       }
 
       this.isChatFormVisible = false;
+      this.updateDragCursor();
     }
 
     // Method to expand widget (can be called later when needed)
@@ -2316,7 +2363,7 @@
 
     toggleChat() {
       // Toggle chat functionality
-      console.log("Chat button clicked!");
+
       // You can expand this to show/hide chat interface
     }
 
@@ -2381,11 +2428,13 @@
     createReopenButton() {
       if (this.reopenButton) {
         this.reopenButton.style.display = "flex";
+        this.bindReopenDragListeners();
+        this.updateDragCursor();
         return;
       }
 
       // Get widget styles
-      const widgetStyles = this.widget && this.widget.style ? this.widget.style : {};
+      const widgetStyles = this.getStyles();
       const widgetBorderRadius = widgetStyles.widget_border_radius ?? 10;
       const widgetTextColor = widgetStyles.widget_text_color || "#000000";
       
@@ -2445,10 +2494,16 @@
 
       // Add click handler to reopen widget
       this.reopenButton.addEventListener("click", () => {
+        if (this.consumeDragClick()) {
+          return;
+        }
+
         this.reopenWidget();
       });
 
       document.body.appendChild(this.reopenButton);
+      this.bindReopenDragListeners();
+      this.updateDragCursor();
     }
 
     // Reopen widget
@@ -2469,7 +2524,7 @@
           this.videoElement.currentTime = 0;
           this.videoElement.muted = false;
           this.videoElement.play().catch(error => {
-            console.log("Autoplay failed:", error);
+
             // If autoplay fails, keep it muted and try again
             this.videoElement.muted = true;
             this.videoElement.play();
@@ -2489,6 +2544,8 @@
 
     // Cleanup method
     destroy() {
+      this.unbindDragListeners();
+
       // Clear polling interval
       if (this.pollingInterval) {
         clearInterval(this.pollingInterval);
