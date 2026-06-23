@@ -21,7 +21,7 @@ class WidgetResource extends Resource
     protected static ?string $model = Widget::class;
     protected static ?string $navigationGroup = 'Widget';
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
-    protected static ?string $navigationLabel = 'Widget';
+    protected static ?string $navigationLabel = 'Widgets';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form

@@ -22,7 +22,7 @@ class ConversionUrlResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-link';
 
-    protected static ?string $navigationGroup = 'Analytics';
+    protected static ?string $navigationGroup = 'Widget';
 
     protected static ?string $navigationLabel = 'Conversion URLs';
 
